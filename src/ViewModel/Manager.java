@@ -22,7 +22,7 @@ public class Manager {
     WriteDictionary writeDictionary;
     Parser parser;
     
-    //Searcher searcher;
+    Searcher searcher;
 
     //variables
     String pathForPostingFile;
@@ -149,8 +149,8 @@ public class Manager {
             }
             Document document = new Document(listOfTerms.size(),counterAmount,commonTerm,maxTerm);
             docsInfo.put(docName,document);
-            //infoDocHsh.put(docName, line);
-            //docsInfo.append(docName).append(":Unique Terms: ").append(listOfTerms.size()).append(" ,Words: ").append(counterAmount).append(";");
+//            infoDocHsh.put(docName, line);
+//            docsInfo.append(docName).append(":Unique Terms: ").append(listOfTerms.size()).append(" ,Words: ").append(counterAmount).append(";");
 //            Map.Entry<String, ITerm> maxEntry = null;
 //
 //            for (Map.Entry<String, ITerm> entry : listOfTerms.entrySet()) {
@@ -261,14 +261,14 @@ public class Manager {
         }
        
         this.pathForPostingFile=writeDictionary.pathToWrite();
-        //searcher=new Searcher(parser,writeDictionary.loadDictionary(),readInfoOnDocs(),WritePostingFile.AMOUNT_OF_POSTING_FILES,writeDictionary.pathToWrite());
+        searcher=new Searcher(parser,writeDictionary.loadDictionary(),readInfoOnDocs(),WritePostingFile.AMOUNT_OF_POSTING_FILES,writeDictionary.pathToWrite());
     }
     
     
-//     public void searchQuery(String query)
-//    {
-//    	this.searcher.query(query);
-//    }
+     public void searchQuery(String query)
+    {
+    	this.searcher.query(query);
+    }
 
     private HashMap<String, ITerm> updateDictionary(HashMap<String, ITerm> dictionary) {
         HashMap<String, ITerm> updatedDictionary = new HashMap<>();

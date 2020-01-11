@@ -27,7 +27,7 @@ public class Ranker {
 		List<String> resultes= new ArrayList<String>();	
 		System.out.println("allDocs size: "+ resultes.size());
 		
-		//need to calc grade for each doc with query words
+//		need to calc grade for each doc with query words
 		Iterator iterDoc = allDocs.iterator();
 		
 		double docCalc;
