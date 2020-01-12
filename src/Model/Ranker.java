@@ -33,7 +33,7 @@ public class Ranker {
 		double docCalc;
 		double countWordInDoc;
 		String doc;
-		while (iterDoc.hasNext())
+		while (iterDoc.hasNext())//for each doc in results
 		{
 			//for each doc calc f(d,q)
 			docCalc=0;

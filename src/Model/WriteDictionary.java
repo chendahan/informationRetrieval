@@ -35,6 +35,7 @@ public class WriteDictionary {
                         .append(":").append(termPtr.getNumOfAppearanceInCorpus())
                         .append(",").append(termPtr.getNumOfAppearanceInDocs())
                         .append(",").append(termPtr.getLastDocument())
+                        .append(",").append(termPtr.getIdf())
                         .append(",").append(termPtr.getInstance())
                         .append("\n");
             }
@@ -44,6 +45,7 @@ public class WriteDictionary {
                         .append(":").append(termPtr.getNumOfAppearanceInCorpus())
                         .append(",").append(termPtr.getNumOfAppearanceInDocs())
                         .append(",").append(termPtr.getLastDocument())
+                        .append(",").append(termPtr.getIdf())
                         .append(",").append(termPtr.getInstance())
                         .append("\n");
             }
@@ -72,7 +74,7 @@ public class WriteDictionary {
             while ((line = br.readLine()) != null) {
                 String[] splitLine = line.split(":");
                 String[] splitInfo = splitLine[1].split(",");
-                addToDictionary(splitLine[0],Integer.parseInt(splitInfo[0]),Integer.parseInt(splitInfo[1]),splitInfo[2],splitInfo[3],dictionary);
+                addToDictionary(splitLine[0],Integer.parseInt(splitInfo[0]),Integer.parseInt(splitInfo[1]),splitInfo[2],Double.parseDouble(splitInfo[3]),splitInfo[4],dictionary);
             }
         } catch (Exception e) {
             e.toString();
@@ -80,25 +82,25 @@ public class WriteDictionary {
         return dictionary;
     }
 
-    private void addToDictionary(String term, int numOfAppearanceInCorpus,int numOfAppearanceInDocs, String lastDoc, String instance , HashMap<String, ITerm> dictionary)
+    private void addToDictionary(String term, int numOfAppearanceInCorpus,int numOfAppearanceInDocs, String lastDoc, double idf, String instance , HashMap<String, ITerm> dictionary)
     {
         if (instance.equals("Entity"))
         {
-            dictionary.put(term,new Entity(term,numOfAppearanceInCorpus,numOfAppearanceInDocs,lastDoc));
+            dictionary.put(term,new Entity(term,numOfAppearanceInCorpus,numOfAppearanceInDocs,lastDoc,idf));
         }
         else if (instance.equals("Number"))
         {
-            dictionary.put(term,new NumberT(term,numOfAppearanceInCorpus,numOfAppearanceInDocs,lastDoc));
+            dictionary.put(term,new NumberT(term,numOfAppearanceInCorpus,numOfAppearanceInDocs,lastDoc,idf));
         }
         //Expression
         else if (instance.equals("Expression"))
         {
-            dictionary.put(term,new Expression(term,numOfAppearanceInCorpus,numOfAppearanceInDocs,lastDoc));
+            dictionary.put(term,new Expression(term,numOfAppearanceInCorpus,numOfAppearanceInDocs,lastDoc,idf));
         }
         //Term
         else
         {
-            dictionary.put(term,new Term(term,numOfAppearanceInCorpus,numOfAppearanceInDocs,lastDoc));
+            dictionary.put(term,new Term(term,numOfAppearanceInCorpus,numOfAppearanceInDocs,lastDoc,idf));
         }
     }
 

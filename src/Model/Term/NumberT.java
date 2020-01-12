@@ -6,6 +6,7 @@ public class NumberT implements ITerm {
     int numOfAppearanceInCorpus;
     int numOfAppearanceInDocs;
     String lastDocument;
+    double idf;
 
     //Constructor
     public NumberT(String term, int numOfAppearanceInCorpus, int numOfAppearanceInDocs, String lastDocument)
@@ -16,6 +17,15 @@ public class NumberT implements ITerm {
         this.lastDocument = lastDocument;
     }
 
+    public NumberT(String term, int numOfAppearanceInCorpus, int numOfAppearanceInDocs, String lastDocument,double idf)
+    {
+        this.term = term;
+        this.numOfAppearanceInCorpus = numOfAppearanceInCorpus;
+        this.numOfAppearanceInDocs = numOfAppearanceInDocs;
+        this.lastDocument = lastDocument;
+        this.idf = idf;
+    }
+    
     @Override
     public void addNumOfAppearanceInCorpus(int amount) {
         this.numOfAppearanceInCorpus = this.numOfAppearanceInCorpus + amount;
@@ -73,4 +83,14 @@ public class NumberT implements ITerm {
         this.lastDocument = lastDocument;
     }
     //</editor-fold>
+    
+    @Override
+	public double getIdf() {
+		return idf;
+	}
+    
+    @Override
+	public void setIdf(double idf) {
+		this.idf = idf;
+	}
 }

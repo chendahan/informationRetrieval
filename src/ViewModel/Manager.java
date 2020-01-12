@@ -42,10 +42,14 @@ public class Manager {
         writeDictionary = new WriteDictionary();
     }
 
-    public void run() {
+    public void run() 
+    {
+    	int docsCounterIDF=0;
+    	long start;
         docsInfo = new HashMap<String, Document>();
         fileReader = new ReadFile(pathForCorpus);
         allFiles = fileReader.getAllFiles();
+        
         if (stemming) {
             this.pathForPostingFile = pathForPostingFile + "\\With Stemming";
             new File(pathForPostingFile).mkdirs();
@@ -56,11 +60,13 @@ public class Manager {
             file.mkdir();
             writePostingFile = new WritePostingFile(pathForPostingFile);
         }
+        
         parser = new Parser(pathForCorpus, stemming);
         // create a pool of threads, 5 max jobs will execute in parallel
         ExecutorService threadPool = Executors.newFixedThreadPool(5);
         //run on all files
-        long start = System.currentTimeMillis();
+        start = System.currentTimeMillis();
+        
         for (String file : allFiles) {
             HashMap<String, StringBuilder> allTextsFromTheFile = fileReader.getTextsFromTheFile(new File(file));
             for (String docID : allTextsFromTheFile.keySet()) {
@@ -73,6 +79,7 @@ public class Manager {
                 //make a batch of document in posting file, each batch written to disk
                 getInfoOnDoc(listOfTerms,docID);
                 counterOfDocs++;
+                docsCounterIDF++;
                 if (counterOfDocs == AMOUNT_OF_DOCS_IN_POSTING_FILE) {
                     indexer.setDictionary((indexer.getDictionary()));
                     counterOfDocs = 0;
@@ -91,6 +98,9 @@ public class Manager {
         threadPool.shutdown();
         while (!threadPool.isTerminated()) {
         }
+        
+        indexer.calcIDF(docsCounterIDF);
+
 
         //update the dictionary for lower and upper letters in terms
         System.out.println("Before Update");

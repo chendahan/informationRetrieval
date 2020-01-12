@@ -19,5 +19,7 @@ public interface ITerm {
     public void setNumOfAppearanceInCorpus(int namOfAppearanceInCorpus);
     public void setNumOfAppearanceInDocs(int namOfAppearanceInDocs);
     public void setLastDocument(String lastDocument);
+	public double getIdf();
+	public void setIdf(double idf);
 
 }

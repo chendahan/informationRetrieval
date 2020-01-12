@@ -4,6 +4,7 @@ import Model.Term.*;
 import javafx.util.Pair;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class Indexer {
 
@@ -318,6 +319,19 @@ public class Indexer {
         this.dictionary.putAll(dictionary);
     }
     //</editor-fold>
+    //calc IFD for each term.
+    //input- docsCounter
+	public void calcIDF(int docsCounter) 
+	{
+		double idf;
+		
+		for (Map.Entry<String, ITerm> entry:this.dictionary.entrySet())
+		{
+			idf=Math.log(1+((docsCounter-entry.getValue().getNumOfAppearanceInDocs()+0.5)/(entry.getValue().getNumOfAppearanceInDocs()+0.5)));
+			entry.getValue().setIdf(idf);
+		}
+		
+	}
 }
 
 

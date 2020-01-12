@@ -24,7 +24,7 @@ public class Main {
         manager.setPathForCorpus("C:\\corpus_MINI");
         //manager.setPathForCorpus("D:\\corpus2");
         manager.setPathForPostingFile("C:\\PostingFileMINI");
-        //manager.run();
+       // manager.run();
         manager.loadDictionary(false);
         
         long start = System.currentTimeMillis();    

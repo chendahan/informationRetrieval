@@ -6,14 +6,24 @@ public class Entity implements ITerm {
     int numOfAppearanceInCorpus;
     int numOfAppearanceInDocs;
     String lastDocument;
+    double idf;
 
-    //Constructor
     public Entity(String term, int numOfAppearanceInCorpus, int numOfAppearanceInDocs, String lastDocument)
     {
         this.term = term;
         this.numOfAppearanceInCorpus = numOfAppearanceInCorpus;
         this.numOfAppearanceInDocs = numOfAppearanceInDocs;
         this.lastDocument = lastDocument;
+    }
+    
+    //Constructor
+    public Entity(String term, int numOfAppearanceInCorpus, int numOfAppearanceInDocs, String lastDocument,double idf)
+    {
+        this.term = term;
+        this.numOfAppearanceInCorpus = numOfAppearanceInCorpus;
+        this.numOfAppearanceInDocs = numOfAppearanceInDocs;
+        this.lastDocument = lastDocument;
+        this.idf = idf;
     }
 
 
@@ -73,4 +83,14 @@ public class Entity implements ITerm {
         this.lastDocument = lastDocument;
     }
     //</editor-fold>
+
+    @Override
+	public double getIdf() {
+		return idf;
+	}
+
+    @Override
+	public void setIdf(double idf) {
+		this.idf = idf;
+	}
 }

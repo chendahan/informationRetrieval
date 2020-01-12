@@ -6,6 +6,7 @@ public class Expression implements ITerm {
     int numOfAppearanceInCorpus;
     int numOfAppearanceInDocs;
     String lastDocument;
+    double idf;
 
     //Constructor
     public Expression(String term, int numOfAppearanceInCorpus, int numOfAppearanceInDocs, String lastDocument)
@@ -15,7 +16,17 @@ public class Expression implements ITerm {
         this.numOfAppearanceInDocs = numOfAppearanceInDocs;
         this.lastDocument = lastDocument;
     }
-
+    
+    public Expression(String term, int numOfAppearanceInCorpus, int numOfAppearanceInDocs, String lastDocument,double idf)
+    {
+        this.term = term;
+        this.numOfAppearanceInCorpus = numOfAppearanceInCorpus;
+        this.numOfAppearanceInDocs = numOfAppearanceInDocs;
+        this.lastDocument = lastDocument;
+        this.idf=idf;
+    }
+   
+ 
 
     @Override
     public void addNumOfAppearanceInCorpus(int amount) {
@@ -66,4 +77,14 @@ public class Expression implements ITerm {
         this.lastDocument = lastDocument;
     }
     //</editor-fold>
+
+    @Override
+	public double getIdf() {
+		return idf;
+	}
+
+    @Override
+	public void setIdf(double idf) {
+		this.idf = idf;
+	}
 }

@@ -7,6 +7,7 @@ public class Term implements ITerm {
     int numOfAppearanceInDocs;
     String lastDocument;
     boolean upperCase;
+    double idf;
 
 
     //Constructor
@@ -26,7 +27,24 @@ public class Term implements ITerm {
         this.numOfAppearanceInDocs = numOfAppearanceInDocs;
         this.lastDocument = lastDocument;
     }
-
+    
+    public Term(String term, int numOfAppearanceInCorpus, int numOfAppearanceInDocs, String lastDocument,double idf )
+    {
+        if (term.charAt(0) >= 'A' && term.charAt(0) <= 'Z')
+        {
+            this.term = term.toUpperCase();
+            this.upperCase = true;
+        }
+        else
+        {
+            this.term = term.toLowerCase();
+            this.upperCase = false;
+        }
+        this.numOfAppearanceInCorpus = numOfAppearanceInCorpus;
+        this.numOfAppearanceInDocs = numOfAppearanceInDocs;
+        this.lastDocument = lastDocument;
+        this.idf = idf;
+    }
 
     @Override
     public void addNumOfAppearanceInCorpus(int amount) {
@@ -90,4 +108,14 @@ public class Term implements ITerm {
         this.lastDocument = lastDocument;
     }
     //</editor-fold>
+
+
+	public double getIdf() {
+		return idf;
+	}
+
+
+	public void setIdf(double idf) {
+		this.idf = idf;
+	}
 }
