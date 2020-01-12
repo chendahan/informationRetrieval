@@ -21,10 +21,10 @@ public class Main {
 
         Manager manager = new Manager();
         manager.setStemming(false);
-        manager.setPathForCorpus("C:\\corpus_MINI");
+        manager.setPathForCorpus("C:\\corpus");
         //manager.setPathForCorpus("D:\\corpus2");
-        manager.setPathForPostingFile("C:\\PostingFileMINI");
-        //manager.run();
+        manager.setPathForPostingFile("C:\\PostingFile");
+       // manager.run();
         manager.loadDictionary(false);
         
         long start = System.currentTimeMillis();   

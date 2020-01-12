@@ -3,10 +3,15 @@ package Model;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+
 
 import Model.Term.ITerm;
 
@@ -33,43 +38,38 @@ public class Searcher {
 		this.ranker= new Ranker(_docsInfo,avgDocLen);
 	}
 	
-	public HashMap<String,Double> queryFromFile(String query,String description)
+	public List<Map.Entry<String, Double>> queryFromFile(String query,String description)
 	{
-		HashMap<String,ITerm> words=parser.parseDoc(query, "0");//word,count in query
-		HashMap<String,HashMap<String,Integer>> allInfoPostingFile=new HashMap<String,HashMap<String,Integer>>();//word to hash of <file, count>
-		String upperCase,lowerCase;
-		HashSet<String> allDocs = new HashSet<String>();//all docs in result
-		HashMap<String,Integer> docFrequency=new HashMap<String,Integer>();//df for each doc
-		HashMap<String,Integer> QueryToWordsAsInDocs= new HashMap<String,Integer>();
-		HashMap<String,Double> idfVal=new HashMap<String,Double>();//idf for each word in query
-
-		for (Map.Entry<String,ITerm> word: words.entrySet())
+		HashMap<String,Double> queryRes=query(query);
+		HashMap<String,Double> descriptionRes=query(description);
+		HashMap<String,Double> combine=new HashMap<String,Double>();
+		
+		for (Map.Entry<String,Double> descRes: descriptionRes.entrySet())
 		{
-			upperCase = word.getKey().toString().toUpperCase();
-			lowerCase = word.getKey().toString().toLowerCase();
-			System.out.println("searching for:" + word.getKey().toString());
-			if(this.dictionary.containsKey(lowerCase))
+			combine.put(descRes.getKey(), descRes.getValue()*0.7);
+		}
+		for (Map.Entry<String,Double> qRes: queryRes.entrySet())
+		{
+			if(combine.containsKey(qRes.getKey()))
 			{
-            	System.out.println("found in lower "+ word.getKey());
-            	AddTermInfo(lowerCase,word.getValue(),lowerCase,allDocs,allInfoPostingFile,docFrequency,QueryToWordsAsInDocs);
-            	idfVal.put(lowerCase, dictionary.get(lowerCase).getIdf());
+				combine.put(qRes.getKey(), combine.get(qRes.getKey()) +qRes.getValue()*0.3);
 			}
-
-			if(this.dictionary.containsKey(upperCase))
+			else
 			{
-            	System.out.println("found in upper "+word.getKey());
-            	AddTermInfo(lowerCase,word.getValue(),upperCase,allDocs,allInfoPostingFile,docFrequency,QueryToWordsAsInDocs);
-            	idfVal.put(upperCase, dictionary.get(upperCase).getIdf());
+				combine.put(qRes.getKey(), qRes.getValue()*0.3);				
 			}
 		}
-
-
-		return ranker.rank(QueryToWordsAsInDocs, allInfoPostingFile,allDocs,docFrequency,idfVal);
+		
+		return sortHash(combine);
 	}
 
-	
 
-	public HashMap<String,Double> query(String query)
+	public List<Map.Entry<String, Double>> queryFromTextBox(String query)
+	{
+		return sortHash(query(query));
+	}
+
+	private HashMap<String,Double> query(String query)
 	{
 		HashMap<String,ITerm> words=parser.parseDoc(query, "0");//word,count in query
 		HashMap<String,HashMap<String,Integer>> allInfoPostingFile=new HashMap<String,HashMap<String,Integer>>();//word to hash of <file, count>
@@ -99,8 +99,26 @@ public class Searcher {
 			}
 		}
 
-
 		return ranker.rank(QueryToWordsAsInDocs, allInfoPostingFile,allDocs,docFrequency,idfVal);
+
+	}
+	
+	public List<Map.Entry<String, Double>> sortHash(HashMap<String,Double> hm)
+	{
+	      // Create a list from elements of HashMap 
+        List<Map.Entry<String, Double> > list = 
+               new LinkedList<Map.Entry<String, Double> >(hm.entrySet()); 
+  
+        // Sort the list 
+        Collections.sort(list, new Comparator<Map.Entry<String, Double> >() { 
+            public int compare(Map.Entry<String, Double> o1,  
+                               Map.Entry<String, Double> o2) 
+            { 
+                return (o2.getValue()).compareTo(o1.getValue()); 
+            } 
+        }); 
+        
+        return list;
 	}
 	
 	public void AddTermInfo(String termLower,ITerm word,String termToSearch,HashSet<String> allDocs,HashMap<String,HashMap<String,Integer>> allInfoPostingFile

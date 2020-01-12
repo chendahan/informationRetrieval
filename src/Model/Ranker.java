@@ -23,7 +23,7 @@ public class Ranker {
     //searcherResultes- containing Hash of String - term from query, mapped to Hash of search results :
     //file name and amount of times the term appeared in the file    
     //docFrequency- map between term from query to df
-    //returns hashmap sorted by the rank
+    //returns hashmap with rank
 	@SuppressWarnings("unchecked")
 	public HashMap<String,Double> rank(HashMap<String,Integer> queryAfterParse, HashMap<String,HashMap<String,Integer>> searcherResultes,HashSet<String> allDocs
 			,HashMap<String,Integer> docFrequency,HashMap<String,Double> idfVal)
@@ -54,19 +54,7 @@ public class Ranker {
 				}
 			}
 			resultes.put(doc, docCalc);
-			
-			//System.out.println("rank for "+doc+" is: "+docCalc);
 		}
-	
-		/*Object[] sortRes = resultes.entrySet().toArray();
-		Arrays.sort(sortRes, new Comparator() 
-		{    public int compare(Object o1, Object o2) {
-			return ((Map.Entry<String, Double>) o2).getValue().compareTo(((Map.Entry<String, Double>) o1).getValue());}});
-		
-		for (Object e : sortRes) {
-		    System.out.println(((Map.Entry<String, Double>) e).getKey() + " : "
-		            + ((Map.Entry<String, Double>) e).getValue());
-		}*/
 		
 		return resultes;
 	}

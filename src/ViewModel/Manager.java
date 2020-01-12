@@ -290,16 +290,17 @@ public class Manager {
     	File queryFile=new File(path);
     	HashMap<String, Pair<String, String>> queries;
     	queries=ReadFile.readQueryFile(queryFile);
+    	HashMap<String, List<Map.Entry<String, Double>>> rankedres = new HashMap<String, List<Map.Entry<String, Double>>>();///query id to list of ranked resultes
     	for(Map.Entry<String, Pair<String, String>> entry: queries.entrySet())
     	{
     		System.out.println("query: "+ entry.getValue().getKey());
-       	 	HashMap<String, Double>  ranked=this.searcher.queryFromFile(entry.getValue().getKey(),entry.getValue().getValue());    		
+    		rankedres.put(entry.getKey(), this.searcher.queryFromFile(entry.getValue().getKey(),entry.getValue().getValue()));    		
     	}
    }
     
-     public void searchQuery(String query)
+     public List<Map.Entry<String, Double>> searchQuery(String query)
     {
-    	 HashMap<String, Double>  ranked=this.searcher.query(query);
+    	 return this.searcher.queryFromTextBox(query);
     }
 
     private HashMap<String, ITerm> updateDictionary(HashMap<String, ITerm> dictionary) {
