@@ -118,7 +118,7 @@ public class Searcher {
             } 
         }); 
         
-        return list;
+        return list.subList(0, 50);
 	}
 	
 	public void AddTermInfo(String termLower,ITerm word,String termToSearch,HashSet<String> allDocs,HashMap<String,HashMap<String,Integer>> allInfoPostingFile

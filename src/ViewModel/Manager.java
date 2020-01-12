@@ -284,7 +284,7 @@ public class Manager {
         searcher=new Searcher(parser,writeDictionary.loadDictionary(),readInfoOnDocs(),WritePostingFile.AMOUNT_OF_POSTING_FILES,writeDictionary.pathToWrite(),this.avgDocLen);
     }
 
-    public void searchQueryFromFile(String path)
+    public HashMap<String, List<Map.Entry<String, Double>>> searchQueryFromFile(String path)
    {
     	String query,description;
     	File queryFile=new File(path);
@@ -296,6 +296,8 @@ public class Manager {
     		System.out.println("query: "+ entry.getValue().getKey());
     		rankedres.put(entry.getKey(), this.searcher.queryFromFile(entry.getValue().getKey(),entry.getValue().getValue()));    		
     	}
+    	
+    	return rankedres;
    }
     
      public List<Map.Entry<String, Double>> searchQuery(String query)
