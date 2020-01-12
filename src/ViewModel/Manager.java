@@ -33,6 +33,7 @@ public class Manager {
     HashMap<String, Document> docsInfo;
     int counterOfDocs = 0;
     boolean stemming;
+    double avgDocLen=0;
 
     int line = 1;
 
@@ -78,7 +79,7 @@ public class Manager {
                 indexer.getPostingFileFromListOfTerms(listOfTerms, docID);
 
                 //make a batch of document in posting file, each batch written to disk
-                getInfoOnDoc(listOfTerms,docID);
+                avgDocLen+=getInfoOnDoc(listOfTerms,docID);
                 counterOfDocs++;
                 docsCounterIDF++;
                 if (counterOfDocs == AMOUNT_OF_DOCS_IN_POSTING_FILE) {
@@ -99,7 +100,7 @@ public class Manager {
         threadPool.shutdown();
         while (!threadPool.isTerminated()) {
         }
-        
+        avgDocLen=avgDocLen/(double)docsCounterIDF;
         indexer.calcIDF(docsCounterIDF);
 
 
@@ -143,7 +144,8 @@ public class Manager {
     //<editor-fold des="Help Function For GUI>
 
     //key = doc ID , lower and upper words ,  remove ! from entity
-    private void getInfoOnDoc(HashMap<String, ITerm> listOfTerms, String docName) {
+    //returns amount of words in file
+    private int getInfoOnDoc(HashMap<String, ITerm> listOfTerms, String docName) {
         if (listOfTerms != null && listOfTerms.size() > 2) {
             int counterAmount = 0;
             String commonTerm = "";
@@ -160,6 +162,7 @@ public class Manager {
             }
             Document document = new Document(listOfTerms.size(),counterAmount,commonTerm,maxTerm);
             docsInfo.put(docName,document);
+            return counterAmount;
 //            infoDocHsh.put(docName, line);
 //            docsInfo.append(docName).append(":Unique Terms: ").append(listOfTerms.size()).append(" ,Words: ").append(counterAmount).append(";");
 //            Map.Entry<String, ITerm> maxEntry = null;
@@ -173,6 +176,7 @@ public class Manager {
 //            docsInfo.append(popularTerm).append("#").append(listOfTerms.get(popularTerm).getNumOfAppearanceInDocs()).append("\n");
 //            line++;
         }
+        return 1;
     }
 
     private HashMap<String, Document> readInfoOnDocs()
@@ -183,6 +187,10 @@ public class Manager {
         try{
         	BufferedReader reader = new BufferedReader(new FileReader(pathForPostingFile + "\\InfoOnDocs.txt"));
     	 	String line;
+    	 	if((line = reader.readLine())!=null)
+    	 	{
+    	 		this.avgDocLen=Double.parseDouble(line);
+    	 	}
     	 	while((line = reader.readLine()) != null) {
     	 		 String[] splitLine = line.split("#");
     	 		doc=new Document(Integer.parseInt(splitLine[1]),Integer.parseInt(splitLine[2]),splitLine[3],Integer.parseInt(splitLine[4]));
@@ -205,7 +213,8 @@ public class Manager {
          try{
 
         	 	BufferedWriter writer = new BufferedWriter(new FileWriter(pathForPostingFile + "\\InfoOnDocs.txt"));
-	         	Set set = docsInfo.entrySet();
+        	 	 writer.write(Double.toString(this.avgDocLen)+"\n");
+        	 	Set set = docsInfo.entrySet();
 	            Iterator iterator = set.iterator();
 	            while(iterator.hasNext()) {
 	                Map.Entry entry = (Map.Entry)iterator.next();
@@ -272,7 +281,7 @@ public class Manager {
         }
        
         this.pathForPostingFile=writeDictionary.pathToWrite();
-        searcher=new Searcher(parser,writeDictionary.loadDictionary(),readInfoOnDocs(),WritePostingFile.AMOUNT_OF_POSTING_FILES,writeDictionary.pathToWrite());
+        searcher=new Searcher(parser,writeDictionary.loadDictionary(),readInfoOnDocs(),WritePostingFile.AMOUNT_OF_POSTING_FILES,writeDictionary.pathToWrite(),this.avgDocLen);
     }
 
     public void searchQueryFromFile(String path)

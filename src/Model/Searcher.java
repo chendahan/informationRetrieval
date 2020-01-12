@@ -24,13 +24,13 @@ public class Searcher {
 	Ranker ranker;
 
 	//ctor- receives the same parser from the doc parsing
-	public Searcher(Parser _parser, HashMap<String, ITerm> _dictionary, HashMap<String, Document> _docsInfo, int _amountOfPostingFiles, String _pathPostingFiles)
+	public Searcher(Parser _parser, HashMap<String, ITerm> _dictionary, HashMap<String, Document> _docsInfo, int _amountOfPostingFiles, String _pathPostingFiles,double avgDocLen)
 	{
 		this.parser = _parser;
 		this.dictionary = _dictionary;
 		this.amountOfPostingFiles=_amountOfPostingFiles;
 		this.pathPostingFiles=_pathPostingFiles;
-		this.ranker= new Ranker(_docsInfo);
+		this.ranker= new Ranker(_docsInfo,avgDocLen);
 	}
 	
 	public HashMap<String,Double> queryFromFile(String query,String description)
