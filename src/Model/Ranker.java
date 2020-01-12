@@ -21,17 +21,18 @@ public class Ranker {
     //searcherResultes- containing Hash of String - term from query, mapped to Hash of search results :
     //file name and amount of times the term appeared in the file    
     //docFrequency- map between term from query to df
-    //returns top 50 ranked by order
-	public List<String> rank(HashMap<String,Integer> queryAfterParse, HashMap<String,HashMap<String,Integer>> searcherResultes,HashSet<String> allDocs
+    //returns hashmap sorted by the rank
+	@SuppressWarnings("unchecked")
+	public HashMap<String,Double> rank(HashMap<String,Integer> queryAfterParse, HashMap<String,HashMap<String,Integer>> searcherResultes,HashSet<String> allDocs
 			,HashMap<String,Integer> docFrequency,HashMap<String,Double> idfVal)
 	{
-		List<String> resultes= new ArrayList<String>();			
+		HashMap<String,Double> resultes= new HashMap<String,Double>();			
 		Iterator iterDoc = allDocs.iterator();
 		double idf,denominator=0,counter=0;
 		double docCalc,countWordInDoc;
 		String doc;
 		
-		System.out.println("allDocs size: "+ resultes.size());
+		System.out.println("allDocs size: "+ allDocs.size());
 		
 		while (iterDoc.hasNext())//for each doc in results
 		{
@@ -49,10 +50,20 @@ public class Ranker {
 					docCalc+=idf*(counter/denominator);
 				}
 			}
+			resultes.put(doc, docCalc);
 			
-			System.out.println("rank for "+doc+" is: "+docCalc);
+			//System.out.println("rank for "+doc+" is: "+docCalc);
 		}
 	
+		/*Object[] sortRes = resultes.entrySet().toArray();
+		Arrays.sort(sortRes, new Comparator() 
+		{    public int compare(Object o1, Object o2) {
+			return ((Map.Entry<String, Double>) o2).getValue().compareTo(((Map.Entry<String, Double>) o1).getValue());}});
+		
+		for (Object e : sortRes) {
+		    System.out.println(((Map.Entry<String, Double>) e).getKey() + " : "
+		            + ((Map.Entry<String, Double>) e).getValue());
+		}*/
 		
 		return resultes;
 	}

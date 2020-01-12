@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javafx.util.Pair;
+
 
 public class ReadFile implements IReadFile {
 
@@ -89,6 +91,44 @@ public class ReadFile implements IReadFile {
             System.out.println("problem with the reading from file!! in: " + file.getPath());
         }
         return allDocsInTheFile;
+    }
+
+    public static HashMap<String, Pair<String, String>> readQueryFile(File file) 
+    {
+    	HashMap<String, Pair<String, String>> allQueriesToDescription = new HashMap<>(); //query id to <query,desc>
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String st=" ", queryId=" ", query=" ";
+            while ((st = br.readLine()) != null) {
+                //gets the name of the text
+
+                if (st.contains("<num>")) 
+                {
+                    String[] line = st.split(" ");;
+                    queryId = line[2];
+                } else if (st.contains("<title>")) 
+                {
+                	query=st.substring("<title> ".length());
+                }
+                else if (st.contains("<desc>"))
+                {
+                    StringBuilder description = new StringBuilder();
+                    
+                    while ( (st = br.readLine())!=null && !st.isEmpty()) {
+                    	description.append(st);
+                    	description.append(" ");
+                    }
+                    allQueriesToDescription.put(queryId, new Pair(query,description.toString()));
+                }
+            }
+            br.close();
+        }
+        catch (Exception e) 
+        {
+            System.out.println("query file illegal!! ");
+        }
+        
+        return allQueriesToDescription;
     }
 
 

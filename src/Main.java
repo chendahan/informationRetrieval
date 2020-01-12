@@ -27,8 +27,9 @@ public class Main {
        // manager.run();
         manager.loadDictionary(false);
         
-        long start = System.currentTimeMillis();    
-        manager.searchQuery("coffee coffee break BAPELA bapela");
+        long start = System.currentTimeMillis();   
+        manager.searchQueryFromFile("C:\\treceval\\queries.txt");
+        //manager.searchQuery("Falkland petroleum exploration");
         long elapsedTime = System.currentTimeMillis() - start;
         System.out.println("query time : "+ elapsedTime/1000F);
     }

@@ -6,6 +6,7 @@ import Model.Term.Expression;
 import Model.Term.ITerm;
 import Model.Term.NumberT;
 import Model.Term.Term;
+import javafx.util.Pair;
 
 import java.io.*;
 import java.util.*;
@@ -273,11 +274,23 @@ public class Manager {
         this.pathForPostingFile=writeDictionary.pathToWrite();
         searcher=new Searcher(parser,writeDictionary.loadDictionary(),readInfoOnDocs(),WritePostingFile.AMOUNT_OF_POSTING_FILES,writeDictionary.pathToWrite());
     }
-    
+
+    public void searchQueryFromFile(String path)
+   {
+    	String query,description;
+    	File queryFile=new File(path);
+    	HashMap<String, Pair<String, String>> queries;
+    	queries=ReadFile.readQueryFile(queryFile);
+    	for(Map.Entry<String, Pair<String, String>> entry: queries.entrySet())
+    	{
+    		System.out.println("query: "+ entry.getValue().getKey());
+       	 	HashMap<String, Double>  ranked=this.searcher.queryFromFile(entry.getValue().getKey(),entry.getValue().getValue());    		
+    	}
+   }
     
      public void searchQuery(String query)
     {
-    	this.searcher.query(query);
+    	 HashMap<String, Double>  ranked=this.searcher.query(query);
     }
 
     private HashMap<String, ITerm> updateDictionary(HashMap<String, ITerm> dictionary) {

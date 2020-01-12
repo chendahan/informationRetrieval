@@ -32,8 +32,44 @@ public class Searcher {
 		this.pathPostingFiles=_pathPostingFiles;
 		this.ranker= new Ranker(_docsInfo);
 	}
+	
+	public HashMap<String,Double> queryFromFile(String query,String description)
+	{
+		HashMap<String,ITerm> words=parser.parseDoc(query, "0");//word,count in query
+		HashMap<String,HashMap<String,Integer>> allInfoPostingFile=new HashMap<String,HashMap<String,Integer>>();//word to hash of <file, count>
+		String upperCase,lowerCase;
+		HashSet<String> allDocs = new HashSet<String>();//all docs in result
+		HashMap<String,Integer> docFrequency=new HashMap<String,Integer>();//df for each doc
+		HashMap<String,Integer> QueryToWordsAsInDocs= new HashMap<String,Integer>();
+		HashMap<String,Double> idfVal=new HashMap<String,Double>();//idf for each word in query
 
-	public  List<String> query(String query)
+		for (Map.Entry<String,ITerm> word: words.entrySet())
+		{
+			upperCase = word.getKey().toString().toUpperCase();
+			lowerCase = word.getKey().toString().toLowerCase();
+			System.out.println("searching for:" + word.getKey().toString());
+			if(this.dictionary.containsKey(lowerCase))
+			{
+            	System.out.println("found in lower "+ word.getKey());
+            	AddTermInfo(lowerCase,word.getValue(),lowerCase,allDocs,allInfoPostingFile,docFrequency,QueryToWordsAsInDocs);
+            	idfVal.put(lowerCase, dictionary.get(lowerCase).getIdf());
+			}
+
+			if(this.dictionary.containsKey(upperCase))
+			{
+            	System.out.println("found in upper "+word.getKey());
+            	AddTermInfo(lowerCase,word.getValue(),upperCase,allDocs,allInfoPostingFile,docFrequency,QueryToWordsAsInDocs);
+            	idfVal.put(upperCase, dictionary.get(upperCase).getIdf());
+			}
+		}
+
+
+		return ranker.rank(QueryToWordsAsInDocs, allInfoPostingFile,allDocs,docFrequency,idfVal);
+	}
+
+	
+
+	public HashMap<String,Double> query(String query)
 	{
 		HashMap<String,ITerm> words=parser.parseDoc(query, "0");//word,count in query
 		HashMap<String,HashMap<String,Integer>> allInfoPostingFile=new HashMap<String,HashMap<String,Integer>>();//word to hash of <file, count>
@@ -89,7 +125,7 @@ public class Searcher {
 	}
 
 	//input: posting file, term to look in the file
-	//output:posting list of thst term: <file,tf in the file>
+	//output:posting list of that term: <file,tf in the file>
 	public HashMap<String,Integer> getTermFromPostingFile(String term, File file, HashSet<String> allDocs)
 	{
 		try
