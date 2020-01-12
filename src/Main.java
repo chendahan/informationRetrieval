@@ -3,6 +3,8 @@ import java.io.FileWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import ViewModel.Manager;
 
@@ -34,12 +36,14 @@ public class Main {
         manager.loadDictionary(false);
         
         long start = System.currentTimeMillis();   
-        HashMap<String, List<Map.Entry<String, Double>>> res = manager.searchQueryFromFile("C:\\treceval\\queries.txt");
+        HashMap<String, List<Map.Entry<String, Double>>> resunsorted = manager.searchQueryFromFile("C:\\treceval\\queries.txt");
         try 
         {
         	int i=0;
             File file = new File("C:\\treceval\\results.txt");
             FileWriter writer = new FileWriter(file);
+            
+            TreeMap<String, List<Map.Entry<String, Double>>> res = new TreeMap<>(resunsorted);
             
 			for (Map.Entry<String, List<Map.Entry<String, Double>>> idQuery: res.entrySet())
 			{
