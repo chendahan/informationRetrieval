@@ -46,7 +46,7 @@ public class Main {
 				i++;
 	            for (Map.Entry<String, Double> docs : idQuery.getValue())
 	            {
-	                writer.write(idQuery.getKey() +" 0 "+docs.getKey()+" "+i+" 42.38 mt\n");
+	                writer.write(idQuery.getKey() +" 0 "+docs.getKey()+" 3 42.38 mt\n");
 	            }
 
 	        } 
