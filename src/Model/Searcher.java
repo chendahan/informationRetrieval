@@ -41,6 +41,7 @@ public class Searcher {
 		HashSet<String> allDocs = new HashSet<String>();//all docs in result
 		HashMap<String,Integer> docFrequency=new HashMap<String,Integer>();//df for each doc
 		HashMap<String,Integer> QueryToWordsAsInDocs= new HashMap<String,Integer>();
+		HashMap<String,Double> idfVal=new HashMap<String,Double>();//idf for each word in query
 
 		for (Map.Entry<String,ITerm> word: words.entrySet())
 		{
@@ -51,20 +52,23 @@ public class Searcher {
 			{
             	System.out.println("found in lower "+ word.getKey());
             	AddTermInfo(lowerCase,word.getValue(),lowerCase,allDocs,allInfoPostingFile,docFrequency,QueryToWordsAsInDocs);
+            	idfVal.put(lowerCase, dictionary.get(lowerCase).getIdf());
 			}
 
 			if(this.dictionary.containsKey(upperCase))
 			{
             	System.out.println("found in upper "+word.getKey());
             	AddTermInfo(lowerCase,word.getValue(),upperCase,allDocs,allInfoPostingFile,docFrequency,QueryToWordsAsInDocs);
+            	idfVal.put(upperCase, dictionary.get(upperCase).getIdf());
 			}
 		}
 
 
-		return ranker.rank(QueryToWordsAsInDocs, allInfoPostingFile,allDocs,docFrequency);
+		return ranker.rank(QueryToWordsAsInDocs, allInfoPostingFile,allDocs,docFrequency,idfVal);
 	}
 	
-	public void AddTermInfo(String termLower,ITerm word,String termToSearch,HashSet<String> allDocs,HashMap<String,HashMap<String,Integer>> allInfoPostingFile,HashMap<String,Integer> docFrequency,HashMap<String,Integer> QueryToWordsAsInDocs )
+	public void AddTermInfo(String termLower,ITerm word,String termToSearch,HashSet<String> allDocs,HashMap<String,HashMap<String,Integer>> allInfoPostingFile
+			,HashMap<String,Integer> docFrequency,HashMap<String,Integer> QueryToWordsAsInDocs )
 	{
 		Integer termHashCode = (Math.abs((termLower).hashCode() % this.amountOfPostingFiles));
 		File tempFile = new File(pathPostingFiles+"\\"+termHashCode.toString()+".txt");
