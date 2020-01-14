@@ -3,6 +3,7 @@ package ViewModel;
 
 import Model.*;
 import Model.Term.*;
+import com.sun.deploy.util.StringUtils;
 import javafx.util.Pair;
 
 import java.io.*;
@@ -34,7 +35,6 @@ public class Manager {
     double avgDocLen=0;
     boolean showEntity;
 
-    int line = 1;
 
     private static final int AMOUNT_OF_DOCS_IN_POSTING_FILE = 25000;
 
@@ -62,7 +62,7 @@ public class Manager {
             writePostingFile = new WritePostingFile(pathForPostingFile);
         }
         
-        parser = new Parser(pathForCorpus, stemming);
+        parser = new Parser(pathForCorpus, stemming,false);
         // create a pool of threads, 5 max jobs will execute in parallel
         ExecutorService threadPool = Executors.newFixedThreadPool(5);
         //run on all files
@@ -122,24 +122,28 @@ public class Manager {
         long elapsedTime = System.currentTimeMillis() - start;
         double elapsedTimeD = (double) elapsedTime;
         System.out.println("The time of program: " + (elapsedTimeD / 60000) + " Min");
-
-        /*
-        final Map<String, Integer> sortedByCount = sortByValue(getHelpDic());
-        int i=0;
-        for (String term: sortedByCount.keySet())
-        {
-            i++;
-            if(i>10)
-            {
-                break;
-            }
-            else {
-                System.out.println(term + " : " + indexer.getDictionary().get(term).split(",")[0]);
-            }
-        }
-        */
+        writeStopWords(parser.getStopWords());
     }
 
+
+    public void writeStopWords(StopWords stopWords)
+    {
+        HashSet<String> stopWord = stopWords.getAllStopWords();
+        StringBuilder stopWordsFile = new StringBuilder();
+        for (String word : stopWord)
+        {
+            stopWordsFile.append(word).append("\n");
+        }
+        try{
+            BufferedWriter writer = new BufferedWriter(new FileWriter(pathForPostingFile + "\\stopwords.txt"));
+            writer.write(stopWordsFile.toString());
+            writer.close();
+        }catch (Exception e)
+        {
+            e.toString();
+        }
+
+    }
     //<editor-fold des="Help Function For GUI>
     public void setShowEntity(boolean showEntity)
     {
@@ -176,32 +180,40 @@ public class Manager {
         return 1;
     }
 
-    private HashMap<String, Document> readInfoOnDocs()
-    {
-    	HashMap<String, Document> hashDoc=new HashMap<String, Document>();
-    	Document doc;
-    	
-        try{
-        	BufferedReader reader = new BufferedReader(new FileReader(pathForPostingFile + "\\InfoOnDocs.txt"));
-    	 	String line;
-    	 	if((line = reader.readLine())!=null)
-    	 	{
-    	 		this.avgDocLen=Double.parseDouble(line);
-    	 	}
-    	 	while((line = reader.readLine()) != null) {
-    	 		 String[] splitLine = line.split("#");
-    	 		doc=new Document(Integer.parseInt(splitLine[1]),Integer.parseInt(splitLine[2]),splitLine[3],Integer.parseInt(splitLine[4]));
-    	 		hashDoc.put(splitLine[0], doc);
-             }
-        	
-    	 	reader.close();
-    	 	
-        }catch (Exception e)
-        {
+    private HashMap<String, Document> readInfoOnDocs() {
+        HashMap<String, Document> hashDoc = new HashMap<String, Document>();
+        Document doc;
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(pathForPostingFile + "\\InfoOnDocs.txt"));
+            String line;
+            if ((line = reader.readLine()) != null) {
+                this.avgDocLen = Double.parseDouble(line);
+            }
+            while ((line = reader.readLine()) != null) {
+                String[] splitLine = line.split("#");
+                if(splitLine.length == 5)
+                {
+                    doc = new Document(Integer.parseInt(splitLine[1]), Integer.parseInt(splitLine[2]), splitLine[3], Integer.parseInt(splitLine[4]));
+                }
+                else
+                {
+                    doc = new Document(Integer.parseInt(splitLine[1]), Integer.parseInt(splitLine[2]), splitLine[3], Integer.parseInt(splitLine[4]));
+                    for (int i = 5 ; i< splitLine.length ; i++)
+                    {
+                        String[] infoOnEntity = StringUtils.splitString(splitLine[i],"$");
+                        doc.setMostFivePopularEntities(new Entity(infoOnEntity[0],Integer.parseInt(infoOnEntity[1])));
+                    }
+                }
+                hashDoc.put(splitLine[0], doc);
+            }
+
+            reader.close();
+
+        } catch (Exception e) {
             System.out.println(e.toString());
         }
         return hashDoc;
-
     }
     
 
@@ -216,7 +228,7 @@ public class Manager {
 	                Map.Entry entry = (Map.Entry)iterator.next();
 	                writer.write(entry.getKey()+"#");
 	                //System.out.println(entry.getKey());
-	                writer.write(docsInfo.get(entry.getKey()).toString());
+                    writer.write(docsInfo.get(entry.getKey().toString()).toString());
 	               // System.out.println(docsInfo.get(entry.getKey()));
 	            }
 	            writer.close();
@@ -269,11 +281,9 @@ public class Manager {
     	{
     		writeDictionary.setPathToWrite(pathForPostingFile, stemming, true);
     	}
-        //indexer.setDictionary(writeDictionary.loadDictionary());
         if(parser==null)
         {
-        	System.out.println("pathForCorpus is: "+pathForCorpus);
-        	parser= new Parser(pathForCorpus, stemming);
+        	parser= new Parser(writeDictionary.pathToWrite(), stemming,true);
         }
        
         this.pathForPostingFile=writeDictionary.pathToWrite();
@@ -291,9 +301,9 @@ public class Manager {
     	for(Map.Entry<String, Pair<String, String>> entry: queries.entrySet())
     	{
     		System.out.println("query: "+ entry.getValue().getKey());
-    		rankedres.put(entry.getKey(), this.searcher.queryFromFile(entry.getValue().getKey(),entry.getValue().getValue()));    		
+    		rankedres.put(entry.getKey(), this.searcher.queryFromFile(entry.getValue().getKey(),entry.getValue().getValue(),semantic));
     	}
-       queryResults = new QueryResults(rankedres);
+       queryResults = new QueryResults(rankedres,pathForPostingFile);
    }
 
     public String[][] getResultOfQueryInArray()
@@ -303,7 +313,7 @@ public class Manager {
     
     public List<Map.Entry<String, Double>> searchQuery(String query,boolean semantic)
     {
-    	 return this.searcher.queryFromTextBox(query);
+    	 return this.searcher.queryFromTextBox(query,semantic);
     }
 
     private HashMap<String, ITerm> updateDictionary(HashMap<String, ITerm> dictionary) {
@@ -360,27 +370,4 @@ public class Manager {
     }
     //</editor-fold>
 
-    //<editor-fold des = "sort dictionary by value">
-/*
-    public HashMap<String , Integer> getHelpDic()
-    {
-        HashMap<String , Integer> helpDic = new HashMap<>();
-        HashMap<String,String> dicHashMap = indexer.getDictionary();
-
-        for(String term : dicHashMap.keySet())
-        {
-            helpDic.put(term,Integer.parseInt(dicHashMap.get(term).split(",")[0]));
-        }
-
-        return helpDic;
-    }
-
-    public static Map<String, Integer> sortByValue(final Map<String, Integer> wordCounts) {
-        return wordCounts.entrySet()
-                .stream()
-                .sorted((Map.Entry.<String, Integer>comparingByValue().reversed()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
-    }
- */
-    //</editor-fold>
 }

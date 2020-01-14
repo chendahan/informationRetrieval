@@ -11,7 +11,7 @@ public class Entity implements ITerm {
 
     public Entity(String term, int numOfAppearanceInCorpus, int numOfAppearanceInDocs, String lastDocument)
     {
-        this.term = term;
+        this.term = term.toUpperCase();
         this.numOfAppearanceInCorpus = numOfAppearanceInCorpus;
         this.numOfAppearanceInDocs = numOfAppearanceInDocs;
         this.lastDocument = lastDocument;
@@ -25,6 +25,12 @@ public class Entity implements ITerm {
         this.numOfAppearanceInDocs = numOfAppearanceInDocs;
         this.lastDocument = lastDocument;
         this.idf = idf;
+    }
+
+    public Entity(String term, int numOfAppearanceInCorpus)
+    {
+        this.term = term.toUpperCase();
+        this.numOfAppearanceInCorpus = numOfAppearanceInCorpus;
     }
 
 

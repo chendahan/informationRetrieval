@@ -136,9 +136,7 @@ public class GUI {
                     queryText.setText(fileChooser.getSelectedFile().toString());
                     inputQuery = fileChooser.getSelectedFile().toString();
                     setInputPath(inputQuery);
-                    //manager.setPathForCorpus(inputPath);
                     inputQueryPath = inputQuery;
-                    //System.out.println("The Input Is: " + inputQuery);
                 }
             }
         });
@@ -280,11 +278,11 @@ public class GUI {
                         String[] definition = null;
                         if (entityCheckBox.isSelected())
                         {
-                            definition = new String[] {"Result Number", "Document Number" , "Top 5 Entities"};
+                            definition = new String[] {"Query Number", "Document Number" , "Top 5 Entities"};
                         }
                         else
                         {
-                            definition = new String[] {"Result Number", "Document Number" };
+                            definition = new String[] {"Query Number", "Document Number" };
                         }
                         JTable resTable = new JTable(result, definition);
                         resTable.setBounds(200, 200, 200, 200);
@@ -332,7 +330,6 @@ public class GUI {
                 } else {
                     showMessageDialog(null, "The output path is empty! \n Please Browse a new path");
                 }
-
             }
         });
 

@@ -71,7 +71,14 @@ public class Document implements Serializable
 
     @Override
     public String toString() {
-        return numOfUniqueTerms+"#"+numOfWords+"#"+mostCommonWord+"#"+countMostCommon+"\n";
+	    String st = "";
+	    st = st + numOfUniqueTerms+"#"+numOfWords+"#"+mostCommonWord+"#"+countMostCommon;
+	    for (ITerm entity : mostFivePopularEntities)
+        {
+            st = st +  "#" +entity.getTerm().substring(1).toUpperCase() + "$" +entity.getNumOfAppearanceInCorpus();
+        }
+        st = st + "\n";
+        return st;
     }
 
 	public int getNumOfUniqueTerms() {
@@ -105,5 +112,10 @@ public class Document implements Serializable
 	public void setCountMostCommon(int countMostCommon) {
 		this.countMostCommon = countMostCommon;
 	}
+
+	public void setMostFivePopularEntities(ITerm entity)
+    {
+        mostFivePopularEntities.add(entity);
+    }
 	
 }

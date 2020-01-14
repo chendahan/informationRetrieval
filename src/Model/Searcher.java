@@ -14,6 +14,7 @@ import java.util.TreeMap;
 
 
 import Model.Term.ITerm;
+import Model.Term.Term;
 
 public class Searcher {
 
@@ -27,6 +28,7 @@ public class Searcher {
 	int amountOfPostingFiles;
 	String pathPostingFiles;
 	Ranker ranker;
+	Semantic semanticModel;
 
 	//ctor- receives the same parser from the doc parsing
 	public Searcher(Parser _parser, HashMap<String, ITerm> _dictionary, HashMap<String, Document> _docsInfo, int _amountOfPostingFiles, String _pathPostingFiles,double avgDocLen)
@@ -36,44 +38,77 @@ public class Searcher {
 		this.amountOfPostingFiles=_amountOfPostingFiles;
 		this.pathPostingFiles=_pathPostingFiles;
 		this.ranker= new Ranker(_docsInfo,avgDocLen);
+		this.semanticModel = new Semantic();
 	}
 	
-	public List<Map.Entry<String, Double>> queryFromFile(String query,String description)
+	public List<Map.Entry<String, Double>> queryFromFile(String query,String description,boolean semantic)
 	{
-		HashMap<String,Double> queryRes=query(query);
-		HashMap<String,Double> descriptionRes=query(description);
+		HashMap<String,Double> queryRes=query(query,semantic);
+		HashMap<String,Double> descriptionRes=query(description,semantic);
 		HashMap<String,Double> combine=new HashMap<String,Double>();
-		
-		for (Map.Entry<String,Double> descRes: descriptionRes.entrySet())
-		{
-			combine.put(descRes.getKey(), descRes.getValue()*0.3);
-		}
-		for (Map.Entry<String,Double> qRes: queryRes.entrySet())
-		{
-			if(combine.containsKey(qRes.getKey()))
-			{
-				combine.put(qRes.getKey(), combine.get(qRes.getKey()) +qRes.getValue()*0.7);
-			}
-			else
-			{
-				combine.put(qRes.getKey(), qRes.getValue()*0.7);
-			}
-		}
+        for (Map.Entry<String,Double> descRes: descriptionRes.entrySet())
+        {
+            combine.put(descRes.getKey(), descRes.getValue()*0.3);
+        }
+        for (Map.Entry<String,Double> qRes: queryRes.entrySet())
+        {
+            if(combine.containsKey(qRes.getKey()))
+            {
+                combine.put(qRes.getKey(), combine.get(qRes.getKey()) +qRes.getValue()*0.7);
+            }
+            else
+            {
+                combine.put(qRes.getKey(), qRes.getValue()*0.7);
+            }
+        }
+
 		
 		return sortHash(combine);
 	}
 
 
-	public List<Map.Entry<String, Double>> queryFromTextBox(String query)
+	public List<Map.Entry<String, Double>> queryFromTextBox(String query,boolean semantic)
 	{
-		return sortHash(query(query));
+		return sortHash(query(query,semantic));
 	}
 
-	private HashMap<String,Double> query(String query)
+
+	private HashMap<String,Double> query(String query,boolean semantic)
 	{
+        String upperCase,lowerCase;
 		HashMap<String,ITerm> words=parser.parseDoc(query, "0");//word,count in query
+        HashMap<String,ITerm> wordsFromSemantic = new HashMap<>();
+        if (semantic && words != null && words.size() > 0)
+        {
+            for (String termInQuery : words.keySet())
+            {
+                HashMap<String,Double> similarTerm = semanticModel.getSimilarTerm(termInQuery);
+                for (String termFromSemanticModel : similarTerm.keySet())
+                {
+                    if (!words.containsKey(termFromSemanticModel))
+                    {
+                        if(dictionary.containsKey(termFromSemanticModel.toLowerCase()))
+                        {
+                            String termInLower = termFromSemanticModel.toLowerCase();
+                            dictionary.get(termInLower).setIdf(dictionary.get(termInLower).getIdf()*0.5);
+                            wordsFromSemantic.put(termInLower,dictionary.get(termInLower));
+                        }
+                        else if(dictionary.containsKey(termFromSemanticModel.toUpperCase()))
+                        {
+                            String termInUpper = termFromSemanticModel.toUpperCase();
+                            dictionary.get(termInUpper).setIdf(dictionary.get(termInUpper).getIdf()*0.5);
+                            wordsFromSemantic.put(termInUpper,dictionary.get(termInUpper));
+                        }
+                    }
+                }
+            }
+            if (wordsFromSemantic != null && wordsFromSemantic.size() >1)
+            {
+                words.putAll(wordsFromSemantic);
+            }
+        }
+
 		HashMap<String,HashMap<String,Integer>> allInfoPostingFile=new HashMap<String,HashMap<String,Integer>>();//word to hash of <file, count>
-		String upperCase,lowerCase;
 		HashSet<String> allDocs = new HashSet<String>();//all docs in result
 		HashMap<String,Integer> docFrequency=new HashMap<String,Integer>();//df for each doc
 		HashMap<String,Integer> QueryToWordsAsInDocs= new HashMap<String,Integer>();
@@ -83,17 +118,14 @@ public class Searcher {
 		{
 			upperCase = word.getKey().toString().toUpperCase();
 			lowerCase = word.getKey().toString().toLowerCase();
-			System.out.println("searching for:" + word.getKey().toString());
 			if(this.dictionary.containsKey(lowerCase))
 			{
-            	System.out.println("found in lower "+ word.getKey());
             	AddTermInfo(lowerCase,word.getValue(),lowerCase,allDocs,allInfoPostingFile,docFrequency,QueryToWordsAsInDocs);
             	idfVal.put(lowerCase, dictionary.get(lowerCase).getIdf());
 			}
 
 			if(this.dictionary.containsKey(upperCase))
 			{
-            	System.out.println("found in upper "+word.getKey());
             	AddTermInfo(lowerCase,word.getValue(),upperCase,allDocs,allInfoPostingFile,docFrequency,QueryToWordsAsInDocs);
             	idfVal.put(upperCase, dictionary.get(upperCase).getIdf());
 			}

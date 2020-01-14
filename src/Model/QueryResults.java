@@ -12,12 +12,13 @@ public class QueryResults {
     TreeMap<String, List<Map.Entry<String, Double>>> res;
     int rows = 0;
     HashMap<String, Document> _docsInfo;
+    String postingPath;
 
-    public QueryResults(HashMap<String, List<Map.Entry<String, Double>>> resunsorted) {
+    public QueryResults(HashMap<String, List<Map.Entry<String, Double>>> resunsorted, String postingPath) {
         try
         {
             int i=0;
-            File file = new File("C:\\My Little Project\\results.txt");
+            File file = new File(postingPath+"\\results.txt");
             FileWriter writer = new FileWriter(file);
 
             res = new TreeMap<>(resunsorted);
@@ -51,7 +52,7 @@ public class QueryResults {
             {
                 for (Map.Entry<String, Double> docs : idQuery.getValue())
                 {
-                    queryResultInArray[i] = new String[]{Integer.toString((i+1)),docs.getKey(),infoOnDocs.get(docs.getKey()).getMostFiveEntityString()};
+                    queryResultInArray[i] = new String[]{idQuery.getKey(),docs.getKey(),infoOnDocs.get(docs.getKey()).getMostFiveEntityString()};
                     i++;
                 }
 
@@ -63,7 +64,7 @@ public class QueryResults {
             {
                 for (Map.Entry<String, Double> docs : idQuery.getValue())
                 {
-                    queryResultInArray[i] = new String[]{Integer.toString(i),docs.getKey()};
+                    queryResultInArray[i] = new String[]{idQuery.getKey(),docs.getKey()};
                     i++;
                 }
             }

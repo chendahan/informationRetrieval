@@ -35,6 +35,25 @@ public class StopWords {
         }
         return this;
     }
+
+    public StopWords StopWordsLoad(String path) {
+        String pathOfStopWords = path + "\\stopwords.txt";
+        allStopWords = new HashSet<>();
+        File file = new File(pathOfStopWords);
+        try {
+            String st = "";
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            while ((st = br.readLine()) != null) {
+                //gets the name of the text
+                allStopWords.add(st);
+            }
+            br.close();
+        } catch (Exception e) {
+            System.out.println("problem with the reading from the stopwords file!! in: " + file.getPath());
+            return null;
+        }
+        return this;
+    }
     
     public boolean IsStopWord(String str)
     {
@@ -55,4 +74,7 @@ public class StopWords {
 //        }
     }
 
+    public HashSet<String> getAllStopWords() {
+        return allStopWords;
+    }
 }

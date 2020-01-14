@@ -303,7 +303,7 @@ public class WritePostingFile extends Thread {
         StringBuilder entityFile = new StringBuilder();
         //delete each entity that appears only one time
         for (String entity : h_Entity.keySet()) {
-            if (h_Entity.get(entity).size() > 1) {
+            if (h_Entity.get(entity).size() > 1 ) {
                 entityFile.append(entity.substring(1)).append(":");
                 for (String infoOnEntity : h_Entity.get(entity)) {
                     entityFile.append(infoOnEntity);
