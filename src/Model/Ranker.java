@@ -15,7 +15,7 @@ public class Ranker {
     	this.docsInfo=_docsInfo;
     	this.M=_docsInfo.size();//docs in collection
     	this.k=0.5;//typically evaluated in the 0 to 3 range,optimal k in a range of 0.5-2.0
-    	this.b=0.5;//b needs to be between 0 and 1,optimal b in a range of 0.3-0.9 
+    	this.b=0.3;//b needs to be between 0 and 1,optimal b in a range of 0.3-0.9
     	this.avgFileLength=avgFileLength;
     }
     

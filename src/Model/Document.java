@@ -1,6 +1,10 @@
 package Model;
 
+import Model.Term.Entity;
+import Model.Term.ITerm;
+
 import java.io.Serializable;
+import java.util.*;
 
 public class Document implements Serializable
 {
@@ -8,6 +12,7 @@ public class Document implements Serializable
 	int numOfWords; 
 	String mostCommonWord;
 	int countMostCommon;
+	ArrayList<ITerm> mostFivePopularEntities;
 	
 	public Document(int _numOfUniqueTerms, int _numOfWords, String _mostCommonWord, int _countMostCommon)
 	{
@@ -15,8 +20,55 @@ public class Document implements Serializable
 		this.numOfWords=_numOfWords;
 		this.mostCommonWord=_mostCommonWord;
 		this.countMostCommon=_countMostCommon;
+		mostFivePopularEntities = new ArrayList<>();
+
 	}
-	
+
+	public void setMostFivePopularEntities(HashMap<String,ITerm> Entity)
+	{
+		PriorityQueue<ITerm> mostFivePopularEntitiesQu = new PriorityQueue<ITerm>(5, new Comparator<ITerm>() {
+			@Override
+			public int compare(ITerm o1, ITerm o2) {
+				if ((o1.getNumOfAppearanceInCorpus()) < (o2.getNumOfAppearanceInCorpus()))
+				{
+					return 1;
+				}
+				else if(o1.getNumOfAppearanceInCorpus() == o2.getNumOfAppearanceInCorpus())
+				{
+					return 0;
+				}
+				else
+					return -1;
+			}
+		});
+		Iterator<ITerm> it = Entity.values().iterator();
+		while (it.hasNext())
+		{
+			ITerm iTerm = ((ITerm) it.next());
+			mostFivePopularEntitiesQu.add(iTerm);
+		}
+		for (int i=0; i<5 && i<mostFivePopularEntitiesQu.size() ; i++)
+		{
+			mostFivePopularEntities.add(mostFivePopularEntitiesQu.poll());
+		}
+	}
+
+	public String getMostFiveEntityString()
+	{
+		String st = "";
+		int i =0;
+		for (ITerm entity : mostFivePopularEntities)
+		{
+			i++;
+			st += entity.getTerm() +": Rank: " +entity.getNumOfAppearanceInCorpus();
+			if (i != mostFivePopularEntities.size())
+			{
+				st += " , ";
+			}
+		}
+		return st;
+	}
+
     @Override
     public String toString() {
         return numOfUniqueTerms+"#"+numOfWords+"#"+mostCommonWord+"#"+countMostCommon+"\n";

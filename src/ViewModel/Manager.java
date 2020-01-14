@@ -2,10 +2,7 @@ package ViewModel;
 
 
 import Model.*;
-import Model.Term.Expression;
-import Model.Term.ITerm;
-import Model.Term.NumberT;
-import Model.Term.Term;
+import Model.Term.*;
 import javafx.util.Pair;
 
 import java.io.*;
@@ -22,6 +19,7 @@ public class Manager {
     WritePostingFile writePostingFile;
     WriteDictionary writeDictionary;
     Parser parser;
+    QueryResults queryResults;
     
     Searcher searcher;
 
@@ -34,6 +32,7 @@ public class Manager {
     int counterOfDocs = 0;
     boolean stemming;
     double avgDocLen=0;
+    boolean showEntity;
 
     int line = 1;
 
@@ -142,39 +141,37 @@ public class Manager {
     }
 
     //<editor-fold des="Help Function For GUI>
+    public void setShowEntity(boolean showEntity)
+    {
+        this.showEntity = showEntity;
+    }
 
     //key = doc ID , lower and upper words ,  remove ! from entity
     //returns amount of words in file
     private int getInfoOnDoc(HashMap<String, ITerm> listOfTerms, String docName) {
         if (listOfTerms != null && listOfTerms.size() > 2) {
+            HashMap<String,ITerm> Entity = new HashMap<>();
             int counterAmount = 0;
             String commonTerm = "";
             int maxTerm = 0;
             Iterator<ITerm> it = listOfTerms.values().iterator();
             while (it.hasNext()) {
                 ITerm iTerm = ((ITerm) it.next());
+                if (iTerm instanceof Entity)
+                {
+                    Entity.put((iTerm).getTerm().substring(1).toUpperCase(),iTerm);
+                }
                 counterAmount = counterAmount + iTerm.getNumOfAppearanceInCorpus();
                 if (maxTerm < iTerm.getNumOfAppearanceInCorpus())
                 {
-                    maxTerm = iTerm.getNumOfAppearanceInCorpus();;
+                    maxTerm = iTerm.getNumOfAppearanceInCorpus();
                     commonTerm = iTerm.getTerm();
                 }
             }
             Document document = new Document(listOfTerms.size(),counterAmount,commonTerm,maxTerm);
+            document.setMostFivePopularEntities(Entity);
             docsInfo.put(docName,document);
             return counterAmount;
-//            infoDocHsh.put(docName, line);
-//            docsInfo.append(docName).append(":Unique Terms: ").append(listOfTerms.size()).append(" ,Words: ").append(counterAmount).append(";");
-//            Map.Entry<String, ITerm> maxEntry = null;
-//
-//            for (Map.Entry<String, ITerm> entry : listOfTerms.entrySet()) {
-//                if (maxEntry == null || (entry.getValue().getNumOfAppearanceInDocs()) > (maxEntry.getValue().getNumOfAppearanceInDocs())) {
-//                    maxEntry = entry;
-//                }
-//            }
-//            String popularTerm = maxEntry.getKey();
-//            docsInfo.append(popularTerm).append("#").append(listOfTerms.get(popularTerm).getNumOfAppearanceInDocs()).append("\n");
-//            line++;
         }
         return 1;
     }
@@ -211,7 +208,6 @@ public class Manager {
     private void writeInfoOnDocs()
      {
          try{
-
         	 	BufferedWriter writer = new BufferedWriter(new FileWriter(pathForPostingFile + "\\InfoOnDocs.txt"));
         	 	 writer.write(Double.toString(this.avgDocLen)+"\n");
         	 	Set set = docsInfo.entrySet();
@@ -281,10 +277,11 @@ public class Manager {
         }
        
         this.pathForPostingFile=writeDictionary.pathToWrite();
-        searcher=new Searcher(parser,writeDictionary.loadDictionary(),readInfoOnDocs(),WritePostingFile.AMOUNT_OF_POSTING_FILES,writeDictionary.pathToWrite(),this.avgDocLen);
+        this.docsInfo = readInfoOnDocs();
+        searcher=new Searcher(parser,writeDictionary.loadDictionary(),docsInfo,WritePostingFile.AMOUNT_OF_POSTING_FILES,writeDictionary.pathToWrite(),this.avgDocLen);
     }
 
-    public HashMap<String, List<Map.Entry<String, Double>>> searchQueryFromFile(String path)
+    public void searchQueryFromFile(String path,boolean semantic)
    {
     	String query,description;
     	File queryFile=new File(path);
@@ -296,11 +293,15 @@ public class Manager {
     		System.out.println("query: "+ entry.getValue().getKey());
     		rankedres.put(entry.getKey(), this.searcher.queryFromFile(entry.getValue().getKey(),entry.getValue().getValue()));    		
     	}
-    	
-    	return rankedres;
+       queryResults = new QueryResults(rankedres);
    }
+
+    public String[][] getResultOfQueryInArray()
+    {
+        return queryResults.getResultOfQueryInArray(docsInfo,showEntity);
+    }
     
-     public List<Map.Entry<String, Double>> searchQuery(String query)
+    public List<Map.Entry<String, Double>> searchQuery(String query,boolean semantic)
     {
     	 return this.searcher.queryFromTextBox(query);
     }

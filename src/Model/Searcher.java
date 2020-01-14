@@ -46,17 +46,17 @@ public class Searcher {
 		
 		for (Map.Entry<String,Double> descRes: descriptionRes.entrySet())
 		{
-			combine.put(descRes.getKey(), descRes.getValue()*0.7);
+			combine.put(descRes.getKey(), descRes.getValue()*0.3);
 		}
 		for (Map.Entry<String,Double> qRes: queryRes.entrySet())
 		{
 			if(combine.containsKey(qRes.getKey()))
 			{
-				combine.put(qRes.getKey(), combine.get(qRes.getKey()) +qRes.getValue()*0.3);
+				combine.put(qRes.getKey(), combine.get(qRes.getKey()) +qRes.getValue()*0.7);
 			}
 			else
 			{
-				combine.put(qRes.getKey(), qRes.getValue()*0.3);				
+				combine.put(qRes.getKey(), qRes.getValue()*0.7);
 			}
 		}
 		

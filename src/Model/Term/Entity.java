@@ -8,6 +8,7 @@ public class Entity implements ITerm {
     String lastDocument;
     double idf;
 
+
     public Entity(String term, int numOfAppearanceInCorpus, int numOfAppearanceInDocs, String lastDocument)
     {
         this.term = term;

@@ -15,6 +15,11 @@ public class GUI {
     public String inputPath;
     public String outputPath;
     boolean stemming;
+    boolean dicIsLoaded;
+
+    String inputQueryPath;
+    String inputFreeQuery;
+    boolean includeEntity;
 
     Manager manager;
 
@@ -43,6 +48,7 @@ public class GUI {
         frame.setVisible(true);
         //initialization of manager
         this.manager = new Manager();
+        dicIsLoaded =false;
 
     }
 
@@ -93,6 +99,7 @@ public class GUI {
                 };
                 int result = JOptionPane.showConfirmDialog(null, inputs, "Free Query", JOptionPane.PLAIN_MESSAGE);
                 if (result == JOptionPane.OK_OPTION) {
+                    inputFreeQuery = freeQuery.getText();
                     System.out.println("You entered " + freeQuery.getText() );
                 } else {
                     System.out.println("User canceled / closed the dialog, result = " + result);
@@ -121,7 +128,7 @@ public class GUI {
                 JFileChooser fileChooser = new JFileChooser();
 
                 // For Directory
-                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 fileChooser.setAcceptAllFileFilterUsed(false);
 
                 int rVal = fileChooser.showOpenDialog(null);
@@ -130,20 +137,14 @@ public class GUI {
                     inputQuery = fileChooser.getSelectedFile().toString();
                     setInputPath(inputQuery);
                     //manager.setPathForCorpus(inputPath);
-                    System.out.println("The Input Is: " + inputQuery);
+                    inputQueryPath = inputQuery;
+                    //System.out.println("The Input Is: " + inputQuery);
                 }
             }
         });
 
 
 
-        JCheckBox semanticCheckBox = new JCheckBox("Allow Semantic");
-        semanticCheckBox.setBounds(150, 250, 120, 25);
-        panel.add(semanticCheckBox);
-
-        JButton resultsButton = new JButton("Show Results");
-        resultsButton.setBounds(280, 250, 120, 25);
-        panel.add(resultsButton);
         //</editor-fold>
 
         // Creating input browse button
@@ -199,11 +200,9 @@ public class GUI {
         panel.add(stemmingCheckBox);
 
         // Show Entity
-        JButton entityLabel = new JButton("Show entities");
-        entityLabel.setBounds(10, 250, 120, 25);
-        panel.add(entityLabel);
-
-
+        JCheckBox entityCheckBox = new JCheckBox("Show Entities");
+        entityCheckBox.setBounds(10, 250, 120, 25);
+        panel.add(entityCheckBox);
         // Creating zero button
         JButton zeroButton = new JButton("Zero");
         zeroButton.setBounds(10, 120, 80, 25);
@@ -238,6 +237,66 @@ public class GUI {
 
         panel.add(zeroButton);
 
+
+        //Semantic
+        JCheckBox semanticCheckBox = new JCheckBox("Allow Semantic");
+        semanticCheckBox.setBounds(150, 250, 120, 25);
+        panel.add(semanticCheckBox);
+
+        JButton resultsButton = new JButton("Show Results");
+        resultsButton.setBounds(280, 250, 120, 25);
+        panel.add(resultsButton);
+
+        resultsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                boolean toContinue = false;
+                if((inputQueryPath == null ) && (inputFreeQuery == null))
+                {
+                    showMessageDialog(null, "The input path or search bar is empty! \n Please Browse a new path for query");
+                }
+                else if (dicIsLoaded)
+                {
+                    toContinue = true;
+                    if (inputQueryPath.length() > 1)
+                    {
+                        manager.searchQueryFromFile(inputQueryPath,semanticCheckBox.isSelected());
+                    }
+                    else
+                        manager.searchQuery(inputFreeQuery,semanticCheckBox.isSelected());
+                }
+                else
+                {
+                    showMessageDialog(null, "Please load Dictionary or click on 'Start' before");
+                }
+                if(toContinue)
+                {
+                    manager.setShowEntity(entityCheckBox.isSelected());
+                    String[][] result = manager.getResultOfQueryInArray();
+                    if (result != null) {
+                        JFrame frame = new JFrame("Results");
+                        frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+                        frame.setPreferredSize(new Dimension(500, 500));
+                        String[] definition = null;
+                        if (entityCheckBox.isSelected())
+                        {
+                            definition = new String[] {"Result Number", "Document Number" , "Top 5 Entities"};
+                        }
+                        else
+                        {
+                            definition = new String[] {"Result Number", "Document Number" };
+                        }
+                        JTable resTable = new JTable(result, definition);
+                        resTable.setBounds(200, 200, 200, 200);
+                        frame.add(new JScrollPane(resTable));
+                        frame.pack();
+                        frame.setVisible(true);
+                    }
+                }
+            }
+        });
+
+
         // Creating showDic button
         JButton showDicButton = new JButton("Show dictionary");
         showDicButton.setBounds(110, 120, 125, 25);
@@ -269,6 +328,7 @@ public class GUI {
             public void actionPerformed(ActionEvent e) {
                 if (manager != null && getOutputPath() != null) {
                     manager.loadDictionary(stemmingCheckBox.isSelected());
+                    dicIsLoaded = true;
                 } else {
                     showMessageDialog(null, "The output path is empty! \n Please Browse a new path");
                 }
@@ -292,6 +352,7 @@ public class GUI {
                         showMessageDialog(null, "The input or output path is empty!");
                     } else {
                         manager.setStemming(stemming);
+                        dicIsLoaded = true;
                         manager.run();
                     }
                 } catch (NullPointerException e1) {
