@@ -40,7 +40,15 @@ public class Searcher {
 		this.ranker= new Ranker(_docsInfo,avgDocLen);
 		this.semanticModel = new Semantic();
 	}
-	
+
+
+    /**
+     * this function handles with query from text file.
+     * @param query - query and query description
+     * @param description;
+     * @param semantic;
+     * @return - list of the top 50 files sorted by rate (top to bottom)
+     */
 	public List<Map.Entry<String, Double>> queryFromFile(String query,String description,boolean semantic)
 	{
 		HashMap<String,Double> queryRes=query(query,semantic);
@@ -62,11 +70,14 @@ public class Searcher {
             }
         }
 
-		
 		return sortHash(combine);
 	}
 
-
+	/**
+	 * @param query  -  input: query and query description
+	 * @param semantic - if we want semantic model
+	 * @return - list of the top 50 files sorted by rate (top to bottom)
+	 */
 	public List<Map.Entry<String, Double>> queryFromTextBox(String query,boolean semantic)
 	{
 		return sortHash(query(query,semantic));
@@ -75,6 +86,7 @@ public class Searcher {
 
 	private HashMap<String,Double> query(String query,boolean semantic)
 	{
+
         String upperCase,lowerCase;
 		HashMap<String,ITerm> words=parser.parseDoc(query, "0");//word,count in query
         HashMap<String,ITerm> wordsFromSemantic = new HashMap<>();

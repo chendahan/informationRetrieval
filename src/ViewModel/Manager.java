@@ -21,7 +21,6 @@ public class Manager {
     WriteDictionary writeDictionary;
     Parser parser;
     QueryResults queryResults;
-    
     Searcher searcher;
 
     //variables
@@ -34,6 +33,12 @@ public class Manager {
     boolean stemming;
     double avgDocLen=0;
     boolean showEntity;
+    int q_ID = 0;
+    HashMap<String, List<Map.Entry<String, Double>>> resunsorted;
+    List<Map.Entry<String, Double>> q_Result;
+
+    long finish;
+    int unqieTerms;
 
 
     private static final int AMOUNT_OF_DOCS_IN_POSTING_FILE = 25000;
@@ -45,8 +50,8 @@ public class Manager {
 
     public void run() 
     {
+        long start;
     	int docsCounterIDF=0;
-    	long start;
         docsInfo = new HashMap<String, Document>();
         fileReader = new ReadFile(pathForCorpus);
         allFiles = fileReader.getAllFiles();
@@ -67,7 +72,6 @@ public class Manager {
         ExecutorService threadPool = Executors.newFixedThreadPool(5);
         //run on all files
         start = System.currentTimeMillis();
-        
         for (String file : allFiles) {
             HashMap<String, StringBuilder> allTextsFromTheFile = fileReader.getTextsFromTheFile(new File(file));
             for (String docID : allTextsFromTheFile.keySet()) {
@@ -101,8 +105,6 @@ public class Manager {
         }
         avgDocLen=avgDocLen/(double)docsCounterIDF;
         indexer.calcIDF(docsCounterIDF);
-
-
         //update the dictionary for lower and upper letters in terms
         System.out.println("Before Update");
         indexer.setDictionary(updateDictionary(indexer.getDictionary()));
@@ -112,20 +114,19 @@ public class Manager {
         //writing the dictionary to disk
         writeDictionary.setPathToWrite(pathForPostingFile, stemming, false);
         writeDictionary.run(indexer.getDictionary());
-
         //sort the dictionary
         sortByTerms();
-
-        System.out.println("The amount of unique terms: " + indexer.getDictionary().size());
+        finish = System.currentTimeMillis() - start;
+        unqieTerms = indexer.getDictionary().size();
         writeInfoOnDocs();
-        //calculate the time for program
-        long elapsedTime = System.currentTimeMillis() - start;
-        double elapsedTimeD = (double) elapsedTime;
-        System.out.println("The time of program: " + (elapsedTimeD / 60000) + " Min");
         writeStopWords(parser.getStopWords());
     }
 
 
+    /**
+     * write the stop words to posting file - so we can load them if we don't have corpus
+     * @param stopWords - all the Stop Words
+     */
     public void writeStopWords(StopWords stopWords)
     {
         HashSet<String> stopWord = stopWords.getAllStopWords();
@@ -180,6 +181,10 @@ public class Manager {
         return 1;
     }
 
+    /**
+     * read the info on documents that we have in the posting file
+     * @return - Hash Map of info of documents: key - doc ID, value - {@link Document}
+     */
     private HashMap<String, Document> readInfoOnDocs() {
         HashMap<String, Document> hashDoc = new HashMap<String, Document>();
         Document doc;
@@ -215,8 +220,11 @@ public class Manager {
         }
         return hashDoc;
     }
-    
 
+
+    /**
+     * write the info on documents that we have into posting file dir
+     */
     private void writeInfoOnDocs()
      {
          try{
@@ -227,9 +235,7 @@ public class Manager {
 	            while(iterator.hasNext()) {
 	                Map.Entry entry = (Map.Entry)iterator.next();
 	                writer.write(entry.getKey()+"#");
-	                //System.out.println(entry.getKey());
                     writer.write(docsInfo.get(entry.getKey().toString()).toString());
-	               // System.out.println(docsInfo.get(entry.getKey()));
 	            }
 	            writer.close();
              	
@@ -298,6 +304,11 @@ public class Manager {
         searcher=new Searcher(parser,indexer.getDictionary(),docsInfo,WritePostingFile.AMOUNT_OF_POSTING_FILES,writeDictionary.pathToWrite(),this.avgDocLen);
     }
 
+    /**
+     * works on the Query that we get from text file.
+     * @param path - query and query description
+     * @param semantic - if we want semantic model
+     */
     public void searchQueryFromFile(String path,boolean semantic)
    {
     	String query,description;
@@ -307,11 +318,50 @@ public class Manager {
     	HashMap<String, List<Map.Entry<String, Double>>> rankedres = new HashMap<String, List<Map.Entry<String, Double>>>();///query id to list of ranked resultes
     	for(Map.Entry<String, Pair<String, String>> entry: queries.entrySet())
     	{
+    	   // long start = System.currentTimeMillis();
     		rankedres.put(entry.getKey(), this.searcher.queryFromFile(entry.getValue().getKey(),entry.getValue().getValue(),semantic));
+           // long finish = System.currentTimeMillis() - start;
+    		//double totalTime =  finish ;
+           // System.out.println("Query: " + entry.getKey() + " return results in: "+totalTime/1000 + " sec");
+
     	}
-       queryResults = new QueryResults(rankedres,pathForPostingFile);
+    	this.resunsorted = new HashMap<>(rankedres);
+       queryResults = new QueryResults(rankedres);
    }
 
+
+    public void saveResults(String path,boolean fromText)
+    {
+        if (fromText)
+        {
+            queryResults.saveResults(resunsorted,path);
+        }
+        else
+        {
+            try
+            {
+                int i=0;
+                File file = new File(path+"\\results.txt");
+                FileWriter writer = new FileWriter(file);
+                for (Map.Entry<String,Double> addToRes : q_Result)
+                {
+                    writer.write( q_ID + " 0 " + addToRes.getKey() + " 3 42.38 mt\n");
+                }
+                writer.close();
+            }
+            catch (Exception e)
+            {
+                System.out.println(e.toString()+" kkkk");
+            }
+        }
+    }
+
+
+
+    /**
+     * helper function for the GUI
+     * @return - result of the query from text in 2D array: String[i][0] - query ID, String[i][1] - doc ID, String[i][2] - top 5 entities
+     */
     public String[][] getResultOfQueryInArray()
     {
         return queryResults.getResultOfQueryInArray(docsInfo,showEntity);
@@ -320,13 +370,20 @@ public class Manager {
     public List<Map.Entry<String, Double>> searchQuery(String query,boolean semantic)
     {
         List<Map.Entry<String, Double>> q_Result = this.searcher.queryFromTextBox(query,semantic);
-        //queryResults = new QueryResults(q_Result,pathForPostingFile);
         return q_Result;
     }
 
+    /**
+     * helper function for the GUI
+     * @param query - query that not from file
+     * @param semantic - if we want to include semantic model
+     * @param ID - the ID we give to queries
+     * @return result of the query in 2D array: String[i][0] - query ID, String[i][1] - doc ID, String[i][2] - top 5 entities
+     */
     public String[][] getResultOfFreeQueryInArray(String query,boolean semantic,int ID)
     {
-        List<Map.Entry<String, Double>> q_Result = searchQuery(query,semantic);
+        q_ID++;
+        q_Result =  new LinkedList<>(searchQuery(query,semantic));
         String[][] result = new String[q_Result.size()][3];
         int i=0;
         for (Map.Entry<String, Double> docName : q_Result)
@@ -342,6 +399,11 @@ public class Manager {
         return result;
     }
 
+    /**
+     * this function runs on all dictionary and try to find same terms that in upper and lower letters
+     * @param dictionary - dictionary
+     * @return - new dictionary
+     */
     private HashMap<String, ITerm> updateDictionary(HashMap<String, ITerm> dictionary) {
         HashMap<String, ITerm> updatedDictionary = new HashMap<>();
         Set<String> allTerms = dictionary.keySet();
@@ -368,6 +430,16 @@ public class Manager {
             }
         }
         return updatedDictionary;
+    }
+
+    public long getTime()
+    {
+        return finish;
+    }
+
+    public int getUnqieTerms()
+    {
+        return unqieTerms;
     }
 
     //</editor-fold>

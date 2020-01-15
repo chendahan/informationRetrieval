@@ -11,10 +11,26 @@ public class QueryResults {
 
     TreeMap<String, List<Map.Entry<String, Double>>> res;
     int rows = 0;
-    HashMap<String, Document> _docsInfo;
-    String postingPath;
+    String writePath;
 
-    public QueryResults(HashMap<String, List<Map.Entry<String, Double>>> resunsorted, String postingPath) {
+    //constructor
+    public QueryResults(HashMap<String, List<Map.Entry<String, Double>>> resunsorted) {
+        int i=0;
+        res = new TreeMap<>(resunsorted);
+        for (Map.Entry<String, List<Map.Entry<String, Double>>> idQuery: res.entrySet())
+        {
+            rows += idQuery.getValue().size();
+            i++;
+
+        }
+    }
+
+    /**
+     * write the result format
+     * @param resunsorted - HashMap key: query ID ,value: key - Doc ID, value - rank
+     * @param postingPath - path where we want to save results
+     */
+    public void saveResults(HashMap<String, List<Map.Entry<String, Double>>> resunsorted, String postingPath) {
         try
         {
             int i=0;
@@ -42,7 +58,12 @@ public class QueryResults {
     }
 
 
-
+    /**
+     * return the result in 2D array
+     * @param infoOnDocs - all info that we got on documents
+     * @param showEntity - if we need to show entities = always true
+     * @return - 2D array String[i][0] - query ID, String[i][1] - doc ID, String[i][2] - Top 5 Entities
+     */
     public String[][] getResultOfQueryInArray(HashMap<String, Document> infoOnDocs,boolean showEntity)
     {
         int col = 2;

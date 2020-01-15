@@ -2,7 +2,6 @@ package Model.Term;
 
 public interface ITerm {
 
-    //public ITerm(String term, int namOfAppearanceInCorpus, int namOfAppearanceInDocs, String lastDocument);
 
 
     public void addNumOfAppearanceInCorpus(int amount);

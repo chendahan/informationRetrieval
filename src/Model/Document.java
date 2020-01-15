@@ -13,7 +13,14 @@ public class Document implements Serializable
 	String mostCommonWord;
 	int countMostCommon;
 	ArrayList<ITerm> mostFivePopularEntities;
-	
+
+    /**
+     * constructor
+     * @param _numOfUniqueTerms - number of unique terms in this doc
+     * @param _numOfWords - number of words in this doc
+     * @param _mostCommonWord - the word that appear more the all
+     * @param _countMostCommon - how many time the common word is appearing
+     */
 	public Document(int _numOfUniqueTerms, int _numOfWords, String _mostCommonWord, int _countMostCommon)
 	{
 		this.numOfUniqueTerms=_numOfUniqueTerms;
@@ -24,6 +31,10 @@ public class Document implements Serializable
 
 	}
 
+    /**
+     * gets a list of entities and update the top 5.
+     * @param Entity - list on entities
+     */
 	public void setMostFivePopularEntities(HashMap<String,ITerm> Entity)
 	{
 		PriorityQueue<ITerm> mostFivePopularEntitiesQu = new PriorityQueue<ITerm>(5, new Comparator<ITerm>() {
@@ -53,6 +64,10 @@ public class Document implements Serializable
 		}
 	}
 
+	/**
+	 *
+	 * @return the Top 4 Entities
+	 */
 	public String getMostFiveEntityString()
 	{
 		String st = "";
@@ -81,6 +96,7 @@ public class Document implements Serializable
         return st;
     }
 
+    //<editor-fold> des="Getters & Setters
 	public int getNumOfUniqueTerms() {
 		return numOfUniqueTerms;
 	}
@@ -117,5 +133,5 @@ public class Document implements Serializable
     {
         mostFivePopularEntities.add(entity);
     }
-	
+    //</editor-fold>
 }

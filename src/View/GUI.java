@@ -4,6 +4,7 @@ import ViewModel.Manager;
 import javafx.scene.control.Alert;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 import javax.swing.*;
 import java.awt.*;
@@ -271,9 +272,9 @@ public class GUI {
                 } else if (dicIsLoaded) {
                     toContinue = true;
                     if (inputPath != null && inputQueryPath.length() > 1) {
-                        manager.searchQueryFromFile(inputQueryPath, true);
+                        manager.searchQueryFromFile(inputQueryPath, semanticCheckBox.isSelected());
                     } else {
-                        resultFromFreeQuery = manager.getResultOfFreeQueryInArray(inputFreeQuery, true, q_ID);
+                        resultFromFreeQuery = manager.getResultOfFreeQueryInArray(inputFreeQuery, semanticCheckBox.isSelected(), q_ID);
                         q_ID++;
                         freeQuery = true;
                     }
@@ -316,7 +317,6 @@ public class GUI {
                         frame.add(btnPnl, BorderLayout.SOUTH);
                         table.getTableHeader().setReorderingAllowed(false);
                         frame.add(new JScrollPane(table));
-                        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
                         btn.addActionListener(new ActionListener() {
                             @Override
@@ -378,7 +378,9 @@ public class GUI {
             public void actionPerformed(ActionEvent e) {
                 if (manager != null && getOutputPath() != null) {
                     manager.loadDictionary(stemmingCheckBox.isSelected());
+                    manager.setStemming(stemmingCheckBox.isSelected());
                     dicIsLoaded = true;
+                    showMessageDialog(null, "The Dictionary is loaded");
                 } else {
                     showMessageDialog(null, "The output path is empty! \n Please Browse a new path");
                 }
@@ -403,6 +405,7 @@ public class GUI {
                         manager.setStemming(stemming);
                         dicIsLoaded = true;
                         manager.run();
+                        showMessageDialog(null,"The time of the program is: " + manager.getTime() +"\n And number of unique terms is " + manager.getUnqieTerms());
                     }
                 } catch (NullPointerException e1) {
                     e1.toString();
@@ -411,6 +414,41 @@ public class GUI {
         });
         panel.add(loadDicButton);
 
+
+        // save Result
+
+        JButton saveResultBtn = new JButton("Save Results");
+        saveResultBtn.setBounds(20, 250, 120, 25);
+        panel.add(saveResultBtn);
+
+        saveResultBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                // For Directory
+                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                fileChooser.setAcceptAllFileFilterUsed(false);
+                int rVal = fileChooser.showOpenDialog(null);
+                if (rVal == JFileChooser.APPROVE_OPTION) {
+                    outputText.setText(fileChooser.getSelectedFile().toString());
+                    String outputForResults = fileChooser.getSelectedFile().toString();
+                    setOutputPath(outputForResults);
+                    isReseted = false;
+                    if (inputQueryPath != null && inputQueryPath.length()>1)
+                    {
+                        manager.saveResults(outputForResults,true);
+                    }
+                    else if(inputFreeQuery!= null && inputFreeQuery.length()>1)
+                    {
+                        manager.saveResults(outputForResults,false);
+                    }
+                    else
+                    {
+                        showMessageDialog(null, "Please click on Search first");
+                    }
+
+                }
+            }
+        });
 
     }
 
