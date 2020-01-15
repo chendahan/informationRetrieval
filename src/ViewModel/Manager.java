@@ -333,9 +333,9 @@ public class Manager {
         {
             result[i][0] = Integer.toString(ID);
             result[i][1] = docName.getKey();
-            if (docsInfo.containsKey(docName) && docsInfo.get(docName).getMostFiveEntityString() != null && docsInfo.get(docName).getMostFiveEntityString().length()>1)
+            if (docsInfo.containsKey(docName.getKey()) && docsInfo.get(docName.getKey()).getMostFiveEntityString() != null && docsInfo.get(docName.getKey()).getMostFiveEntityString().length()>1)
             {
-                result[i][2] = docsInfo.get(docName).getMostFiveEntityString();
+                result[i][2] = docsInfo.get(docName.getKey()).getMostFiveEntityString();
             }
             i++;
         }
