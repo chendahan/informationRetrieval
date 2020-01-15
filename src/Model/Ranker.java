@@ -33,9 +33,7 @@ public class Ranker {
 		double idf,denominator=0,counter=0;
 		double docCalc,countWordInDoc,denominatorDoc;
 		String doc;
-		
-		System.out.println("allDocs size: "+ allDocs.size());
-		
+
 		while (iterDoc.hasNext())//for each doc in results
 		{
 			docCalc=0;

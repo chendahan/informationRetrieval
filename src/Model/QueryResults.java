@@ -41,6 +41,8 @@ public class QueryResults {
         }
     }
 
+
+
     public String[][] getResultOfQueryInArray(HashMap<String, Document> infoOnDocs,boolean showEntity)
     {
         int col = 2;

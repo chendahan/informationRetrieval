@@ -16,7 +16,7 @@ public class Semantic {
     public Semantic() {
 
         try {
-            Word2VecModel word2VecModel = Word2VecModel.fromTextFile(new File("src\\resources\\w2vJAR\\word2vec.c.output.model.txt"));
+            Word2VecModel word2VecModel = Word2VecModel.fromTextFile(new File("word2vec.c.output.model.txt"));
             searcher = word2VecModel.forSearch();
         } catch (IOException e) {
             e.printStackTrace();

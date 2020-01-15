@@ -90,13 +90,13 @@ public class Searcher {
                         if(dictionary.containsKey(termFromSemanticModel.toLowerCase()))
                         {
                             String termInLower = termFromSemanticModel.toLowerCase();
-                            dictionary.get(termInLower).setIdf(dictionary.get(termInLower).getIdf()*0.5);
+                            dictionary.get(termInLower).setIdf(dictionary.get(termInLower).getIdf()*0.1);
                             wordsFromSemantic.put(termInLower,dictionary.get(termInLower));
                         }
                         else if(dictionary.containsKey(termFromSemanticModel.toUpperCase()))
                         {
                             String termInUpper = termFromSemanticModel.toUpperCase();
-                            dictionary.get(termInUpper).setIdf(dictionary.get(termInUpper).getIdf()*0.5);
+                            dictionary.get(termInUpper).setIdf(dictionary.get(termInUpper).getIdf()*0.1);
                             wordsFromSemantic.put(termInUpper,dictionary.get(termInUpper));
                         }
                     }
@@ -149,7 +149,10 @@ public class Searcher {
                 return (o2.getValue()).compareTo(o1.getValue()); 
             } 
         }); 
-        
+        if (list.size() < 50)
+        {
+            return list;
+        }
         return list.subList(0, 50);
 	}
 	

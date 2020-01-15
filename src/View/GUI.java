@@ -1,12 +1,18 @@
 package View;
 
 import ViewModel.Manager;
+import javafx.scene.control.Alert;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static javax.swing.JOptionPane.showMessageDialog;
 
@@ -16,15 +22,17 @@ public class GUI {
     public String outputPath;
     boolean stemming;
     boolean dicIsLoaded;
+    boolean isReseted = false;
 
     String inputQueryPath;
     String inputFreeQuery;
     boolean includeEntity;
+    int q_ID;
 
     Manager manager;
 
     public GUI() {
-
+        q_ID = 1;
         // Creating instance of JFrame
         JFrame frame = new JFrame("Our Little Google");
         // Setting the width and height of frame
@@ -186,6 +194,7 @@ public class GUI {
                     outputText.setText(fileChooser.getSelectedFile().toString());
                     outputPath = fileChooser.getSelectedFile().toString();
                     setOutputPath(outputPath);
+                    isReseted = false;
                     manager.setPathForPostingFile(outputPath);
                 }
             }
@@ -198,9 +207,9 @@ public class GUI {
         panel.add(stemmingCheckBox);
 
         // Show Entity
-        JCheckBox entityCheckBox = new JCheckBox("Show Entities");
-        entityCheckBox.setBounds(10, 250, 120, 25);
-        panel.add(entityCheckBox);
+        //JCheckBox entityCheckBox = new JCheckBox("Show Entities");
+        //entityCheckBox.setBounds(10, 250, 120, 25);
+        //panel.add(entityCheckBox);
         // Creating zero button
         JButton zeroButton = new JButton("Zero");
         zeroButton.setBounds(10, 120, 80, 25);
@@ -210,25 +219,30 @@ public class GUI {
                 if (getOutputPath() == null || getOutputPath().length() == 0) {
                     showMessageDialog(null, "The output path is empty! \n Please Browse a new path.");
                 } else {
-                    File file = null;
-                    if (stemmingCheckBox.isSelected()) {
-                        file = new File(getOutputPath() + "\\With Stemming");
-                    } else {
-                        file = new File(getOutputPath() + "\\Without Stemming");
-                    }
-                    if (file.list().length == 0)
-                    {
-                        showMessageDialog(null, "The output path is empty!");
-                    }
-
-                    File[] files = file.listFiles();
-                    if (files != null) { //some JVMs return null for empty dirs
-                        for (File f : files) {
-                            f.delete();
+                    if (!isReseted) {
+                        File file = null;
+                        if (stemmingCheckBox.isSelected()) {
+                            file = new File(getOutputPath() + "\\With Stemming");
+                        } else {
+                            file = new File(getOutputPath() + "\\Without Stemming");
                         }
+                        if (file.list().length == 0) {
+                            showMessageDialog(null, "The output path is empty!");
+                        }
+                        File[] files = file.listFiles();
+                        if (files != null) { //some JVMs return null for empty dirs
+                            for (File f : files) {
+                                f.delete();
+                            }
+                        }
+                        file.delete();
+                        manager = null;
+                        isReseted = true;
                     }
-                    file.delete();
-                    manager = null;
+                    else
+                    {
+                        showMessageDialog(null, "Cannot reset twice");
+                    }
                 }
             }
         });
@@ -249,50 +263,88 @@ public class GUI {
             @Override
             public void actionPerformed(ActionEvent e) {
                 boolean toContinue = false;
-                if((inputQueryPath == null ) && (inputFreeQuery == null))
-                {
+                boolean freeQuery = false;
+                String[][] resultFromFreeQuery = new String[50][3];
+                //List<Map.Entry<String, Double>> resultFromFreeQuery;
+                if ((inputQueryPath == null) && (inputFreeQuery == null)) {
                     showMessageDialog(null, "The input path or search bar is empty! \n Please Browse a new path for query");
-                }
-                else if (dicIsLoaded)
-                {
+                } else if (dicIsLoaded) {
                     toContinue = true;
-                    if (inputQueryPath.length() > 1)
-                    {
-                        manager.searchQueryFromFile(inputQueryPath,semanticCheckBox.isSelected());
+                    if (inputPath != null && inputQueryPath.length() > 1) {
+                        manager.searchQueryFromFile(inputQueryPath, true);
+                    } else {
+                        resultFromFreeQuery = manager.getResultOfFreeQueryInArray(inputFreeQuery, true, q_ID);
+                        q_ID++;
+                        freeQuery = true;
                     }
-                    else
-                        manager.searchQuery(inputFreeQuery,semanticCheckBox.isSelected());
-                }
-                else
-                {
+                } else {
                     showMessageDialog(null, "Please load Dictionary or click on 'Start' before");
                 }
-                if(toContinue)
-                {
-                    manager.setShowEntity(entityCheckBox.isSelected());
-                    String[][] result = manager.getResultOfQueryInArray();
+                if (toContinue) {
+                    manager.setShowEntity(true);
+                    String[][] result;
+                    if (freeQuery && resultFromFreeQuery != null) {
+                        result = resultFromFreeQuery;
+                    } else {
+                        result = manager.getResultOfQueryInArray();
+                    }
+
+                    String[][] resultWithNoEntity = new String[result.length][2];
+                    for (int i = 0; i < result.length; i++) {
+                        for (int j = 0; j < 2; j++) {
+                            resultWithNoEntity[i][j] = result[i][j];
+                        }
+                    }
+
                     if (result != null) {
                         JFrame frame = new JFrame("Results");
-                        frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-                        frame.setPreferredSize(new Dimension(500, 500));
-                        String[] definition = null;
-                        if (entityCheckBox.isSelected())
-                        {
-                            definition = new String[] {"Query Number", "Document Number" , "Top 5 Entities"};
-                        }
-                        else
-                        {
-                            definition = new String[] {"Query Number", "Document Number" };
-                        }
-                        JTable resTable = new JTable(result, definition);
-                        resTable.setBounds(200, 200, 200, 200);
-                        frame.add(new JScrollPane(resTable));
+
+                        frame.setLayout(new BorderLayout());
+                        String[] definition = new String[]{"Query Number", "Document Number"};
+                        final JTable table = new JTable(resultWithNoEntity, definition);
+
+                        JPanel btnPnl = new JPanel(new BorderLayout());
+                        JPanel bottombtnPnl = new JPanel(new FlowLayout(FlowLayout.CENTER));
+
+                        JButton btn = new JButton("Show Entities");
+                        bottombtnPnl.add(btn);
+
+                        btnPnl.add(bottombtnPnl, BorderLayout.CENTER);
+                        frame.add(table.getTableHeader(), BorderLayout.NORTH);
+
+                        frame.add(table, BorderLayout.CENTER);
+                        frame.add(btnPnl, BorderLayout.SOUTH);
+                        table.getTableHeader().setReorderingAllowed(false);
+                        frame.add(new JScrollPane(table));
+                        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+                        btn.addActionListener(new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                int selectedRow = table.getSelectedRow();
+                                if (selectedRow < 0) {
+                                    showMessageDialog(null, "Please select a row");
+                                } else {
+                                    if (result[selectedRow][2] != null && result[selectedRow][2].length()  > 1)
+                                    {
+                                        String docToShow = result[selectedRow][2];
+                                        String topFiveEntities = docToShow.replaceAll(",", "\n");
+                                        showMessageDialog(null, topFiveEntities, "Top 5 Entities", JOptionPane.PLAIN_MESSAGE);
+                                    }
+                                    else
+                                    {
+                                        showMessageDialog(null, "There is no entities for this document");
+                                    }
+                                }
+                            }
+                        });
                         frame.pack();
                         frame.setVisible(true);
                     }
                 }
             }
         });
+
 
 
         // Creating showDic button

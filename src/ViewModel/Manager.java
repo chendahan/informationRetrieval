@@ -201,7 +201,7 @@ public class Manager {
                     doc = new Document(Integer.parseInt(splitLine[1]), Integer.parseInt(splitLine[2]), splitLine[3], Integer.parseInt(splitLine[4]));
                     for (int i = 5 ; i< splitLine.length ; i++)
                     {
-                        String[] infoOnEntity = StringUtils.splitString(splitLine[i],"$");
+                        String[] infoOnEntity = splitLine[i].split("\\$");
                         doc.setMostFivePopularEntities(new Entity(infoOnEntity[0],Integer.parseInt(infoOnEntity[1])));
                     }
                 }
@@ -266,8 +266,14 @@ public class Manager {
         // Display the TreeMap which is naturally sorted
         int i = 0;
         for (HashMap.Entry<String, ITerm> entry : sorted.entrySet()) {
-
-            sortedDictionary[i][0] = entry.getKey();
+            if (entry.getValue() instanceof Entity)
+            {
+                sortedDictionary[i][0] = entry.getKey().toUpperCase();
+            }
+            else
+            {
+                sortedDictionary[i][0] = entry.getKey();
+            }
             sortedDictionary[i][1] = Integer.toString(entry.getValue().getNumOfAppearanceInCorpus());
             i++;
         }
@@ -288,7 +294,8 @@ public class Manager {
        
         this.pathForPostingFile=writeDictionary.pathToWrite();
         this.docsInfo = readInfoOnDocs();
-        searcher=new Searcher(parser,writeDictionary.loadDictionary(),docsInfo,WritePostingFile.AMOUNT_OF_POSTING_FILES,writeDictionary.pathToWrite(),this.avgDocLen);
+        indexer.setDictionary(writeDictionary.loadDictionary());
+        searcher=new Searcher(parser,indexer.getDictionary(),docsInfo,WritePostingFile.AMOUNT_OF_POSTING_FILES,writeDictionary.pathToWrite(),this.avgDocLen);
     }
 
     public void searchQueryFromFile(String path,boolean semantic)
@@ -300,7 +307,6 @@ public class Manager {
     	HashMap<String, List<Map.Entry<String, Double>>> rankedres = new HashMap<String, List<Map.Entry<String, Double>>>();///query id to list of ranked resultes
     	for(Map.Entry<String, Pair<String, String>> entry: queries.entrySet())
     	{
-    		System.out.println("query: "+ entry.getValue().getKey());
     		rankedres.put(entry.getKey(), this.searcher.queryFromFile(entry.getValue().getKey(),entry.getValue().getValue(),semantic));
     	}
        queryResults = new QueryResults(rankedres,pathForPostingFile);
@@ -313,7 +319,27 @@ public class Manager {
     
     public List<Map.Entry<String, Double>> searchQuery(String query,boolean semantic)
     {
-    	 return this.searcher.queryFromTextBox(query,semantic);
+        List<Map.Entry<String, Double>> q_Result = this.searcher.queryFromTextBox(query,semantic);
+        //queryResults = new QueryResults(q_Result,pathForPostingFile);
+        return q_Result;
+    }
+
+    public String[][] getResultOfFreeQueryInArray(String query,boolean semantic,int ID)
+    {
+        List<Map.Entry<String, Double>> q_Result = searchQuery(query,semantic);
+        String[][] result = new String[q_Result.size()][3];
+        int i=0;
+        for (Map.Entry<String, Double> docName : q_Result)
+        {
+            result[i][0] = Integer.toString(ID);
+            result[i][1] = docName.getKey();
+            if (docsInfo.containsKey(docName) && docsInfo.get(docName).getMostFiveEntityString() != null && docsInfo.get(docName).getMostFiveEntityString().length()>1)
+            {
+                result[i][2] = docsInfo.get(docName).getMostFiveEntityString();
+            }
+            i++;
+        }
+        return result;
     }
 
     private HashMap<String, ITerm> updateDictionary(HashMap<String, ITerm> dictionary) {
